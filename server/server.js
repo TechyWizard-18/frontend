@@ -13,7 +13,7 @@ const port = process.env.PORT || 5000;
 // 1. Define the list of trusted websites (origins)
 const allowedOrigins = [
 
-    "https://frontend-5fgqb6b65-kartiks-projects-ab4da1d4.vercel.app/",
+    "https://frontend-5fgqb6b65-kartiks-projects-ab4da1d4.vercel.app",
     'http://localhost:5173',
     'http://localhost:3000'
 ];
