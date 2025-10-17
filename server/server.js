@@ -8,39 +8,30 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// --- START: Dynamic CORS Configuration ---
+// --- START: Robust CORS Configuration ---
 
 // 1. Define the list of trusted websites (origins)
 const allowedOrigins = [
     'https://frontend-mx20.onrender.com', // Your deployed frontend URL
-    'https://frontend-mx20.onrender.com/',// ADDED: Handle trailing slash
     'http://localhost:5173',               // Your common local development URL for Vite
     'http://localhost:3000'                // A common local development URL for Create React App
 ];
 
+// 2. Configure CORS with this direct list. This is a more standard and reliable way
+//    to handle preflight (OPTIONS) requests.
 const corsOptions = {
-    origin: function (origin, callback) {
-        // ADDED: Log the incoming origin for debugging
-        console.log('CORS Check - Incoming Origin:', origin);
-
-        // 2. Check if the incoming request's origin is in our whitelist
-        //    'origin' is undefined for server-to-server requests or tools like Postman
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true); // Allow the request
-        } else {
-            callback(new Error('Not allowed by CORS')); // Block the request
-        }
-    },
-    optionsSuccessStatus: 200
+    origin: allowedOrigins
 };
 
 // 3. Use the configured CORS options
+//    This MUST be one of the first middleware functions used.
 app.use(cors(corsOptions));
 
-// --- END: Dynamic CORS Configuration ---
+// --- END: Robust CORS Configuration ---
 
 
 // Middleware
+// This must come AFTER the cors middleware.
 app.use(express.json());
 
 // Database Connection
