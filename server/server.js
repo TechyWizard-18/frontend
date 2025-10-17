@@ -1,5 +1,4 @@
 // server/server.js
-// SIMPLIFIED AND UNLOCKED
 
 const express = require('express');
 const cors = require('cors');
@@ -8,14 +7,40 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// --- START: Dynamic CORS Configuration ---
+
+// 1. Define the list of trusted websites (origins)
+const allowedOrigins = [
+    'https://frontend-mx20.onrender.com', // Your deployed frontend URL
+    'https://frontend-mx20.onrender.com/',// ADDED: Handle trailing slash
+    'http://localhost:5173',               // Your common local development URL for Vite
+    'http://localhost:3000'                // A common local development URL for Create React App
+];
+
 const corsOptions = {
-    origin: 'https://frontend-mx20.onrender.com', // Your live frontend URL
+    origin: function (origin, callback) {
+        // ADDED: Log the incoming origin for debugging
+        console.log('CORS Check - Incoming Origin:', origin);
+
+        // 2. Check if the incoming request's origin is in our whitelist
+        //    'origin' is undefined for server-to-server requests or tools like Postman
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true); // Allow the request
+        } else {
+            callback(new Error('Not allowed by CORS')); // Block the request
+        }
+    },
     optionsSuccessStatus: 200
 };
 
-app.use(cors(corsOptions)); // Use the configured option
-// Middleware first
-app.use(cors());
+// 3. Use the configured CORS options
+app.use(cors(corsOptions));
+
+// --- END: Dynamic CORS Configuration ---
+
+
+// Middleware
 app.use(express.json());
 
 // Database Connection
@@ -26,7 +51,7 @@ connection.once('open', () => {
     console.log("MongoDB database connection established successfully");
 });
 
-// API Routes (now completely open)
+// API Routes
 const customersRouter = require('./routes/customers');
 const pposRouter = require('./routes/ppos');
 const analyticsRouter = require('./routes/analytics');
@@ -42,3 +67,4 @@ app.use('/api/admin', adminRouter);
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
 });
+
