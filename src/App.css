@@ -1,0 +1,42 @@
+/* client/src/App.css */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+@keyframes move {
+    100% {
+        transform: translate3d(0, 0, 1px) rotate(360deg);
+    }
+}
+
+.background-container {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background: #0d1a2d; /* Dark blue background */
+    overflow: hidden;
+    z-index: -1;
+}
+
+.background-span {
+    width: 20vmin;
+    height: 20vmin;
+    border-radius: 20vmin;
+    backface-visibility: hidden;
+    position: absolute;
+    animation: move;
+    animation-duration: 45s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+/* Creates a nice distribution of moving shapes */
+.background-span:nth-child(0) { top: 72%; left: 91%; background: #2a5a8a; }
+.background-span:nth-child(1) { top: 21%; left: 81%; background: #1f476e; }
+.background-span:nth-child(2) { top: 82%; left: 15%; background: #2a5a8a; }
+.background-span:nth-child(3) { top: 38%; left: 33%; background: #1f476e; }
+.background-span:nth-child(4) { top: 81%; left: 56%; background: #2a5a8a; }
+.background-span:nth-child(5) { top: 56%; left: 78%; background: #1f476e; }
