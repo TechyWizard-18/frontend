@@ -42,19 +42,43 @@ router.post('/register', async (req, res) => {
 // POST /api/users/login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
+
+    // Add validation
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
+
     try {
+        console.log('Login attempt for username:', username);
+
         const user = await User.findOne({ username });
-        if (user && (await user.matchPassword(password))) {
+
+        if (!user) {
+            console.log('User not found:', username);
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+
+        const isMatch = await user.matchPassword(password);
+        console.log('Password match result:', isMatch);
+
+        if (isMatch) {
+            const token = generateToken(user._id);
+            console.log('Login successful for user:', username);
             res.json({
                 _id: user._id,
                 username: user.username,
-                token: generateToken(user._id),
+                token: token,
             });
         } else {
+            console.log('Invalid password for user:', username);
             res.status(401).json({ message: 'Invalid username or password' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Login error:', error);
+        res.status(500).json({
+            message: 'Server Error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
