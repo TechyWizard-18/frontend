@@ -39,7 +39,7 @@ const Navbar = () => {
                     <>
                         {/* Links for logged-in users */}
                         <Link to="/" style={styles.link}>Dashboard</Link>
-                        <Link to="/ppo-management" style={styles.link}>📦 PPO Management</Link>
+                        <Link to="/po-management" style={styles.link}>📦 PO Management</Link>
                         <Link to="/analytics" style={styles.link}>Analytics</Link>
                         <Link to="/admin-panel" style={styles.link}>👨‍💼 Admin Panel</Link>
                         <Link to="/add-customer" style={styles.link}>Add Customer</Link>

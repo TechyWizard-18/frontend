@@ -1,4 +1,4 @@
-// client/src/components/AddPPOForm.js
+// client/src/components/AddPOForm.js
 // REVISED FILE
 
 import React, { useState } from 'react';
@@ -58,10 +58,10 @@ const styles = {
     }
 };
 
-const AddPPOForm = ({ customerId, onPPOAdded }) => {
-    const [ppoValue, setPpoValue] = useState('');
-    const [ppoType, setPpoType] = useState('');
-    const [ppoDescription, setPpoDescription] = useState('');
+const AddPOForm = ({ customerId, onPOAdded }) => {
+    const [poValue, setPoValue] = useState('');
+    const [poType, setPoType] = useState('');
+    const [poDescription, setPoDescription] = useState('');
     const [loading, setLoading] = useState(false);
     const { fetchSummary } = useAnalytics();
 
@@ -69,54 +69,54 @@ const AddPPOForm = ({ customerId, onPPOAdded }) => {
         e.preventDefault();
         setLoading(true);
 
-        const newPPO = {
+        const newPO = {
             customerId,
-            ppoValue: Number(ppoValue),
-            ppoType,
-            ppoDescription
+            ppoValue: Number(poValue),
+            ppoType: poType,
+            ppoDescription: poDescription
         };
 
-        axios.post(`${API_URL}/api/ppos`, newPPO)
+        axios.post(`${API_URL}/api/ppos`, newPO)
             .then(res => {
-                console.log('PPO added successfully:', res.data);
-                setPpoValue('');
-                setPpoType('');
-                setPpoDescription('');
+                console.log('PO added successfully:', res.data);
+                setPoValue('');
+                setPoType('');
+                setPoDescription('');
                 setLoading(false);
-                onPPOAdded();
+                onPOAdded();
                 fetchSummary();
             })
             .catch(err => {
-                console.error('Error adding PPO:', err);
+                console.error('Error adding PO:', err);
                 setLoading(false);
-                alert('Failed to add PPO. Please try again.');
+                alert('Failed to add PO. Please try again.');
             });
     };
 
     return (
         <form onSubmit={handleSubmit} style={styles.form}>
-            <h3 style={styles.formTitle}>➕ Add New PPO</h3>
+            <h3 style={styles.formTitle}>➕ Add New PO</h3>
 
             <div style={styles.formGroup}>
-                <label style={styles.label}>PPO Value (INR):</label>
+                <label style={styles.label}>PO Value (AED):</label>
                 <input
                     type="number"
-                    value={ppoValue}
-                    onChange={(e) => setPpoValue(e.target.value)}
+                    value={poValue}
+                    onChange={(e) => setPoValue(e.target.value)}
                     required
                     style={styles.input}
-                    placeholder="Enter amount in ₹"
+                    placeholder="Enter amount in AED"
                     disabled={loading}
                     min="0"
                 />
             </div>
 
             <div style={styles.formGroup}>
-                <label style={styles.label}>PPO Type:</label>
+                <label style={styles.label}>PO Type:</label>
                 <input
                     type="text"
-                    value={ppoType}
-                    onChange={(e) => setPpoType(e.target.value)}
+                    value={poType}
+                    onChange={(e) => setPoType(e.target.value)}
                     required
                     style={styles.input}
                     placeholder="e.g., Product, Service, License"
@@ -125,10 +125,10 @@ const AddPPOForm = ({ customerId, onPPOAdded }) => {
             </div>
 
             <div style={styles.formGroup}>
-                <label style={styles.label}>PPO Description:</label>
+                <label style={styles.label}>PO Description:</label>
                 <textarea
-                    value={ppoDescription}
-                    onChange={(e) => setPpoDescription(e.target.value)}
+                    value={poDescription}
+                    onChange={(e) => setPoDescription(e.target.value)}
                     required
                     style={{ ...styles.input, height: '100px', resize: 'vertical' }}
                     placeholder="Enter detailed description..."
@@ -141,10 +141,10 @@ const AddPPOForm = ({ customerId, onPPOAdded }) => {
                 style={{...styles.button, opacity: loading ? 0.6 : 1}}
                 disabled={loading}
             >
-                {loading ? '⏳ Adding PPO...' : '✅ Add PPO'}
+                {loading ? '⏳ Adding PO...' : '✅ Add PO'}
             </button>
         </form>
     );
 };
 
-export default AddPPOForm;
+export default AddPOForm;

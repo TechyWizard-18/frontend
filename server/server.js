@@ -5,28 +5,13 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// --- START: Environment Variable Validation ---
-if (!process.env.MONGO_URI) {
-    console.error('ERROR: MONGO_URI is not set in environment variables!');
-    process.exit(1);
-}
-
-if (!process.env.JWT_SECRET) {
-    console.error('ERROR: JWT_SECRET is not set in environment variables!');
-    process.exit(1);
-}
-
-console.log('Environment variables validated successfully');
-console.log('MongoDB URI:', process.env.MONGO_URI.substring(0, 20) + '...');
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not Set');
-console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
-// --- END: Environment Variable Validation ---
+const app = express();
+const port = process.env.PORT || 5000;
 
 // --- START: Robust CORS Configuration ---
 
 // 1. Define the list of trusted websites (origins)
 const allowedOrigins = [
-    'https://frontend-mx20.onrender.com', // Your deployed frontend URL
     'http://localhost:5173',               // Your common local development URL for Vite
     'http://localhost:3000'                // A common local development URL for Create React App
 ];
@@ -72,3 +57,4 @@ app.use('/api/admin', adminRouter);
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
 });
+

@@ -156,8 +156,8 @@ const DashboardPage = () => {
                         onChange={(e) => setFilterPending(e.target.value)}
                     >
                         <option value="all">All Customers</option>
-                        <option value="pending">Has Pending PPOs</option>
-                        <option value="noPending">No Pending PPOs</option>
+                        <option value="pending">Has Pending POs</option>
+                        <option value="noPending">No Pending POs</option>
                     </select>
                     <button onClick={handleClearFilters} style={styles.clearButton}>Clear Filters</button>
                 </div>

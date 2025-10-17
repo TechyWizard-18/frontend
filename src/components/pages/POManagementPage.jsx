@@ -1,5 +1,5 @@
-// client/src/pages/PPOManagementPage.jsx
-// PPO MANAGEMENT PAGE WITH FILTERING
+// client/src/pages/POManagementPage.jsx
+// PO MANAGEMENT PAGE WITH FILTERING
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -30,7 +30,7 @@ const styles = {
     customerLink: { color: '#17a2b8', textDecoration: 'none', fontWeight: 'bold' },
     statusSelect: { padding: '8px 12px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', cursor: 'pointer', fontSize: '1em' },
     loadingContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'white', fontSize: '1.5em' },
-    noPPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px' },
+    noPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px' },
     getStatusBadge: (status) => {
         const baseStyle = { padding: '8px 15px', borderRadius: '20px', color: 'white', fontWeight: 'bold', textAlign: 'center', display: 'inline-block' };
         if (status === 'Pending') return { ...baseStyle, backgroundColor: '#ffc107' };
@@ -38,8 +38,8 @@ const styles = {
     }
 };
 
-const PPOManagementPage = () => {
-    const [ppos, setPPOs] = useState([]);
+const POManagementPage = () => {
+    const [pos, setPOs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -50,10 +50,10 @@ const PPOManagementPage = () => {
     const { fetchSummary } = useAnalytics();
 
     useEffect(() => {
-        fetchPPOs();
+        fetchPOs();
     }, [searchTerm, statusFilter, sortBy, startDate, endDate]);
 
-    const fetchPPOs = () => {
+    const fetchPOs = () => {
         setLoading(true);
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
@@ -64,36 +64,36 @@ const PPOManagementPage = () => {
 
         axios.get(`${API_URL}/api/ppos?${params.toString()}`)
             .then(response => {
-                setPPOs(response.data);
+                setPOs(response.data);
                 calculateStats(response.data);
                 setLoading(false);
             })
             .catch(err => {
-                console.error('Error fetching PPOs:', err);
-                toast.error('Failed to load PPOs');
+                console.error('Error fetching POs:', err);
+                toast.error('Failed to load POs');
                 setLoading(false);
             });
     };
 
-    const calculateStats = (ppoList) => {
+    const calculateStats = (poList) => {
         const stats = {
-            total: ppoList.length,
-            pending: ppoList.filter(p => p.status === 'Pending').length,
-            dispatched: ppoList.filter(p => p.status === 'Dispatched').length,
+            total: poList.length,
+            pending: poList.filter(p => p.status === 'Pending').length,
+            dispatched: poList.filter(p => p.status === 'Dispatched').length,
         };
         setStats(stats);
     };
 
-    const handleStatusChange = (ppoId, newStatus) => {
-        axios.patch(`${API_URL}/api/ppos/${ppoId}`, { status: newStatus })
-            .then(res => {
-                toast.success('PPO status updated successfully!');
-                fetchPPOs();
+    const handleStatusChange = (poId, newStatus) => {
+        axios.patch(`${API_URL}/api/ppos/${poId}`, { status: newStatus })
+            .then(() => {
+                toast.success('PO status updated successfully!');
+                fetchPOs();
                 fetchSummary();
             })
             .catch(err => {
-                console.error('Error updating PPO status:', err);
-                toast.error('Failed to update PPO status');
+                console.error('Error updating PO status:', err);
+                toast.error('Failed to update PO status');
             });
     };
 
@@ -106,9 +106,9 @@ const PPOManagementPage = () => {
     };
 
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-IN', {
+        return new Intl.NumberFormat('en-AE', {
             style: 'currency',
-            currency: 'INR',
+            currency: 'AED',
             minimumFractionDigits: 0
         }).format(value);
     };
@@ -122,7 +122,7 @@ const PPOManagementPage = () => {
         return (
             <AnimatedPage>
                 <div style={styles.loadingContainer}>
-                    <div>⏳ Loading PPOs...</div>
+                    <div>⏳ Loading POs...</div>
                 </div>
             </AnimatedPage>
         );
@@ -132,14 +132,14 @@ const PPOManagementPage = () => {
         <AnimatedPage>
             <div style={styles.container}>
                 <div style={styles.header}>
-                    <h1 style={styles.title}>📦 PPO Management</h1>
+                    <h1 style={styles.title}>📦 PO Management</h1>
                 </div>
 
                 {/* Stats Cards */}
                 <div style={styles.statsRow}>
                     <div style={styles.statCard}>
                         <div style={{...styles.statValue, color: '#17a2b8'}}>{stats.total}</div>
-                        <div style={styles.statLabel}>Total PPOs</div>
+                        <div style={styles.statLabel}>Total POs</div>
                     </div>
                     <div style={styles.statCard}>
                         <div style={{...styles.statValue, color: '#ffc107'}}>{stats.pending}</div>
@@ -157,7 +157,7 @@ const PPOManagementPage = () => {
                     <div style={styles.filtersRow}>
                         <input
                             type="text"
-                            placeholder="🔍 Search by customer name or PPO type..."
+                            placeholder="🔍 Search by customer name or PO type..."
                             style={styles.searchInput}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -198,10 +198,10 @@ const PPOManagementPage = () => {
                     </div>
                 </div>
 
-                {/* PPO Table */}
-                {ppos.length === 0 ? (
-                    <div style={styles.noPPOsMessage}>
-                        <p>No PPOs found matching your filters.</p>
+                {/* PO Table */}
+                {pos.length === 0 ? (
+                    <div style={styles.noPOsMessage}>
+                        <p>No POs found matching your filters.</p>
                     </div>
                 ) : (
                     <table style={styles.table}>
@@ -217,24 +217,28 @@ const PPOManagementPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {ppos.map(ppo => (
-                                <tr key={ppo._id}>
-                                    <td style={styles.td}>{formatDate(ppo.createdAt)}</td>
+                            {pos.map(po => (
+                                <tr key={po._id}>
+                                    <td style={styles.td}>{formatDate(po.createdAt)}</td>
                                     <td style={styles.td}>
-                                        <Link to={`/customer/${ppo.customerId._id}`} style={styles.customerLink}>
-                                            {ppo.customerId.name}
-                                        </Link>
+                                        {po.customerId ? (
+                                            <Link to={`/customer/${po.customerId._id}`} style={styles.customerLink}>
+                                                {po.customerId.name}
+                                            </Link>
+                                        ) : (
+                                            <span style={{ color: '#888' }}>Unknown Customer</span>
+                                        )}
                                     </td>
-                                    <td style={styles.td}>{ppo.ppoType}</td>
-                                    <td style={styles.td}>{formatCurrency(ppo.ppoValue)}</td>
-                                    <td style={styles.td}>{ppo.ppoDescription}</td>
+                                    <td style={styles.td}>{po.ppoType}</td>
+                                    <td style={styles.td}>{formatCurrency(po.ppoValue)}</td>
+                                    <td style={styles.td}>{po.ppoDescription}</td>
                                     <td style={styles.td}>
-                                        <span style={styles.getStatusBadge(ppo.status)}>{ppo.status}</span>
+                                        <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
                                     </td>
                                     <td style={styles.td}>
                                         <select
-                                            value={ppo.status}
-                                            onChange={(e) => handleStatusChange(ppo._id, e.target.value)}
+                                            value={po.status}
+                                            onChange={(e) => handleStatusChange(po._id, e.target.value)}
                                             style={styles.statusSelect}
                                         >
                                             <option value="Pending">Pending</option>
@@ -251,4 +255,4 @@ const PPOManagementPage = () => {
     );
 };
 
-export default PPOManagementPage;
+export default POManagementPage;

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
-import AddPPOForm from './AddPPOForm';
+import AddPOForm from './AddPPOForm';
 import { useAnalytics } from '../../context/AnalyticsContext.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -20,7 +20,7 @@ const styles = {
     td: { padding: '15px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#f0f0f0' },
     select: { padding: '8px 12px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', cursor: 'pointer', fontSize: '1em' },
     loadingContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'white', fontSize: '1.5em' },
-    noPPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', marginTop: '20px' },
+    noPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', marginTop: '20px' },
     sectionTitle: { color: 'white', marginTop: '30px', marginBottom: '20px', fontSize: '1.5em' },
     getStatusBadge: (status) => {
         const baseStyle = { padding: '8px 15px', borderRadius: '20px', color: 'white', fontWeight: 'bold', textAlign: 'center', display: 'inline-block' };
@@ -32,16 +32,16 @@ const styles = {
 
 const CustomerDetailPage = () => {
     const [customer, setCustomer] = useState(null);
-    const [ppos, setPPOs] = useState([]);
+    const [pos, setPOs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { id } = useParams();
     const { fetchSummary } = useAnalytics();
 
-    const fetchPPOs = () => {
+    const fetchPOs = () => {
         axios.get(`${API_URL}/api/customers/${id}/ppos`)
-            .then(response => setPPOs(response.data))
-            .catch(error => console.log('Error fetching PPOs:', error));
+            .then(response => setPOs(response.data))
+            .catch(error => console.log('Error fetching POs:', error));
     };
 
     useEffect(() => {
@@ -60,24 +60,24 @@ const CustomerDetailPage = () => {
                 setLoading(false);
             });
 
-        // Fetch PPOs
-        fetchPPOs();
+        // Fetch POs
+        fetchPOs();
     }, [id]);
 
-    const handleStatusChange = (ppoId, newStatus) => {
-        axios.patch(`${API_URL}/api/ppos/${ppoId}`, { status: newStatus })
+    const handleStatusChange = (poId, newStatus) => {
+        axios.patch(`${API_URL}/api/ppos/${poId}`, { status: newStatus })
             .then(res => {
-                console.log('PPO status updated:', res.data);
-                fetchPPOs();
+                console.log('PO status updated:', res.data);
+                fetchPOs();
                 fetchSummary();
             })
-            .catch(err => console.error('Error updating PPO status:', err));
+            .catch(err => console.error('Error updating PO status:', err));
     };
 
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-IN', {
+        return new Intl.NumberFormat('en-AE', {
             style: 'currency',
-            currency: 'INR',
+            currency: 'AED',
             minimumFractionDigits: 0
         }).format(value);
     };
@@ -94,7 +94,7 @@ const CustomerDetailPage = () => {
         return (
             <div style={styles.container}>
                 <Link to="/" style={styles.backButton}>← Back to Dashboard</Link>
-                <div style={styles.noPPOsMessage}>
+                <div style={styles.noPOsMessage}>
                     <p>❌ {error || 'Customer not found'}</p>
                 </div>
             </div>
@@ -111,13 +111,13 @@ const CustomerDetailPage = () => {
                 <p style={styles.detailText}><strong>📍 Address:</strong> {customer.address}</p>
             </div>
 
-            <AddPPOForm customerId={id} onPPOAdded={fetchPPOs} />
+            <AddPOForm customerId={id} onPOAdded={fetchPOs} />
 
-            <h3 style={styles.sectionTitle}>📋 PPO History</h3>
+            <h3 style={styles.sectionTitle}>📋 PO History</h3>
 
-            {ppos.length === 0 ? (
-                <div style={styles.noPPOsMessage}>
-                    <p>No PPOs found for this customer. Add one above! 👆</p>
+            {pos.length === 0 ? (
+                <div style={styles.noPOsMessage}>
+                    <p>No POs found for this customer. Add one above! 👆</p>
                 </div>
             ) : (
                 <table style={styles.table}>
@@ -131,18 +131,18 @@ const CustomerDetailPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {ppos.map(ppo => (
-                            <tr key={ppo._id}>
-                                <td style={styles.td}>{ppo.ppoType}</td>
-                                <td style={styles.td}>{formatCurrency(ppo.ppoValue)}</td>
-                                <td style={styles.td}>{ppo.ppoDescription}</td>
+                        {pos.map(po => (
+                            <tr key={po._id}>
+                                <td style={styles.td}>{po.ppoType}</td>
+                                <td style={styles.td}>{formatCurrency(po.ppoValue)}</td>
+                                <td style={styles.td}>{po.ppoDescription}</td>
                                 <td style={styles.td}>
-                                    <span style={styles.getStatusBadge(ppo.status)}>{ppo.status}</span>
+                                    <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
                                 </td>
                                 <td style={styles.td}>
                                     <select
-                                        value={ppo.status}
-                                        onChange={(e) => handleStatusChange(ppo._id, e.target.value)}
+                                        value={po.status}
+                                        onChange={(e) => handleStatusChange(po._id, e.target.value)}
                                         style={styles.select}
                                     >
                                         <option value="Pending">Pending</option>

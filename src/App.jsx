@@ -14,7 +14,7 @@ import DashboardPage from './components/pages/DashboardPage';
 import AddCustomerPage from './components/pages/AddCustomerPage';
 import CustomerDetailPage from './components/pages/CustomerDetailPage';
 import AnalyticsPage from './components/pages/AnalyticsPage';
-import PPOManagementPage from './components/pages/PPOManagementPage';
+import POManagementPage from './components/pages/POManagementPage';
 import LoginPage from "./components/pages/LoginPage.jsx";
 import AdminPanel from "./components/pages/AdminPanel.jsx";
 
@@ -41,7 +41,7 @@ function App() {
                             <Route path="/" element={<Layout />}>
                                 <Route index element={<DashboardPage />} />
                                 <Route path="analytics" element={<AnalyticsPage />} />
-                                <Route path="ppo-management" element={<PPOManagementPage />} />
+                                <Route path="po-management" element={<POManagementPage />} />
                                 <Route path="admin-panel" element={<AdminPanel />} />
                                 <Route path="add-customer" element={<AddCustomerPage />} />
                                 <Route path="customer/:id" element={<CustomerDetailPage />} />

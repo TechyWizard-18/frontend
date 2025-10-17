@@ -15,7 +15,7 @@ const AnalyticsSummary = () => {
     const { summary } = useAnalytics();
 
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value || 0);
+        return new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 0 }).format(value || 0);
     };
 
     return (

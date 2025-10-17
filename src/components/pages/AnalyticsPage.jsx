@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import {
     LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -13,6 +14,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const styles = {
     title: { color: 'white', marginBottom: '20px', fontSize: '2em', fontWeight: 'bold' },
+    headerContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+    exportButton: { backgroundColor: '#28a745', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1em', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' },
     grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' },
     singleGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '30px', marginBottom: '30px' },
     chartCard: { background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '20px', borderRadius: '15px' },
@@ -112,9 +115,9 @@ const AnalyticsPage = () => {
             .catch(err => console.error('Error fetching monthly financials:', err));
     }, [selectedYear, selectedMonth]);
 
-    const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
+    const formatCurrency = (value) => new Intl.NumberFormat('en-AE', {
         style: 'currency',
-        currency: 'INR',
+        currency: 'AED',
         minimumFractionDigits: 0
     }).format(value);
 
@@ -164,14 +167,101 @@ const AnalyticsPage = () => {
         return null;
     };
 
+    // Export to Excel with comprehensive data
+    const exportToExcel = () => {
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: Customer Growth Data
+        const growthSheet = XLSX.utils.json_to_sheet(
+            growthData.map(item => ({
+                'Month': item.monthName,
+                'New Customers': item.newCustomers
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, growthSheet, 'Customer Growth');
+
+        // Sheet 2: Revenue Trend
+        const revenueSheet = XLSX.utils.json_to_sheet(
+            revenueData.map(item => ({
+                'Month': item.monthName,
+                'Total Revenue (AED)': item.totalRevenue,
+                'Average Order Value (AED)': item.avgOrderValue,
+                'Number of Orders': item.orderCount
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, revenueSheet, 'Revenue Trend');
+
+        // Sheet 3: Top Customers
+        const customersSheet = XLSX.utils.json_to_sheet(
+            topCustomers.map(item => ({
+                'Customer Name': item.customerName,
+                'Total Revenue (AED)': item.totalRevenue,
+                'Number of Orders': item.orderCount
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, customersSheet, 'Top Customers');
+
+        // Sheet 4: Monthly Financials
+        const financialsSheet = XLSX.utils.json_to_sheet(
+            monthlyFinancials.map(item => ({
+                'Status': item.name,
+                'Dispatched Value (AED)': item.dispatched || 0,
+                'Pending Value (AED)': item.pending || 0,
+                'Total (AED)': (item.dispatched || 0) + (item.pending || 0)
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, financialsSheet, `${monthNames[selectedMonth-1]} ${selectedYear}`);
+
+        // Sheet 5: Order Status Distribution
+        const statusSheet = XLSX.utils.json_to_sheet(
+            statusDistribution.map(item => ({
+                'Status': item.name,
+                'Count': item.value,
+                'Total Revenue (AED)': item.revenue
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, statusSheet, 'Status Distribution');
+
+        // Sheet 6: Completion Rate
+        const completionSheet = XLSX.utils.json_to_sheet(
+            completionRate.map(item => ({
+                'Month': item.monthName,
+                'Completion Rate (%)': item.completionRate,
+                'Total Orders': item.totalOrders,
+                'Completed Orders': item.completedOrders
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, completionSheet, 'Completion Rate');
+
+        // Sheet 7: Customers Served
+        const servedSheet = XLSX.utils.json_to_sheet(
+            servedData.map(item => ({
+                'Month': item.monthName,
+                'Unique Customers Served': item.count
+            }))
+        );
+        XLSX.utils.book_append_sheet(wb, servedSheet, 'Customers Served');
+
+        // Generate filename with current date
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        XLSX.writeFile(wb, `Analytics_Report_${dateStr}.xlsx`);
+    };
+
     return (
         <AnimatedPage>
-            <h1 style={styles.title}>📊 Business Intelligence Dashboard</h1>
+            <div style={styles.headerContainer}>
+                <h1 style={styles.title}>📊 Business Intelligence Dashboard</h1>
+                <button style={styles.exportButton} onClick={exportToExcel}>
+                    📥 Export Complete Report
+                </button>
+            </div>
 
             {/* Revenue Trend - Full Width */}
             <div style={styles.singleGrid}>
                 <div style={styles.chartCard}>
-                    <h3 style={styles.chartTitle}>💰 Revenue Trend & Average Order Value</h3>
+                    <h3 style={styles.chartTitle}>💰 Revenue Trend & Average Order Value (Unit: AED)</h3>
                     <ResponsiveContainer width="100%" height={350}>
                         <AreaChart data={revenueData}>
                             <defs>
@@ -182,7 +272,7 @@ const AnalyticsPage = () => {
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.2)" />
                             <XAxis dataKey="monthName" stroke="white" />
-                            <YAxis stroke="white" tickFormatter={formatCurrency} />
+                            <YAxis stroke="white" />
                             <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255, 255, 255, 0.3)', strokeWidth: 2 }} />
                             <Legend />
                             <Area type="monotone" dataKey="totalRevenue" name="Total Revenue" stroke="#82ca9d" fillOpacity={1} fill="url(#colorRevenue)" />
@@ -209,7 +299,7 @@ const AnalyticsPage = () => {
                     </ResponsiveContainer>
                 </div>
 
-                {/* PPO Completion Rate */}
+                {/* PO Completion Rate */}
                 <div style={styles.chartCard}>
                     <h3 style={styles.chartTitle}>✅ Order Completion Rate (%)</h3>
                     <ResponsiveContainer width="100%" height={300}>
@@ -294,7 +384,7 @@ const AnalyticsPage = () => {
                 {/* Monthly Financials */}
                 <div style={styles.chartCard}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-                        <h3 style={{...styles.chartTitle, marginBottom: 0, borderBottom: 'none'}}>💵 Monthly PPO Financials</h3>
+                        <h3 style={{...styles.chartTitle, marginBottom: 0, borderBottom: 'none'}}>💵 Monthly PO Financials</h3>
                         <div style={styles.filterContainer}>
                             <select style={styles.select} value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
                                 {monthNames.map((name, index) => <option key={name} value={index+1}>{name}</option>)}
@@ -322,4 +412,3 @@ const AnalyticsPage = () => {
 };
 
 export default AnalyticsPage;
-
