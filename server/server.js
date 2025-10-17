@@ -8,7 +8,12 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+const corsOptions = {
+    origin: 'https://frontend-mx20.onrender.com', // Your live frontend URL
+    optionsSuccessStatus: 200
+};
 
+app.use(cors(corsOptions)); // Use the configured option
 // Middleware first
 app.use(cors());
 app.use(express.json());
@@ -27,7 +32,6 @@ const pposRouter = require('./routes/ppos');
 const analyticsRouter = require('./routes/analytics');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
-
 app.use('/api/users', usersRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/ppos', pposRouter);
