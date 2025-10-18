@@ -8,8 +8,6 @@ import { toast } from 'react-toastify';
 import EditCustomerModal from '../EditCustomerModal';
 import AnimatedPage from '../AnimatedPage';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
     title: { color: 'white', margin: 0 },
@@ -58,7 +56,7 @@ const DashboardPage = () => {
         if (currentSortBy) { params.append('sortBy', currentSortBy); }
         if (currentFilterPending !== 'all') { params.append('filterPending', currentFilterPending); }
 
-        axios.get(`${API_URL}/api/customers?${params.toString()}`)
+        axios.get(`/api/customers?${params.toString()}`)
             .then(response => {
                 const { customers: newCustomers, totalPages: newTotalPages } = response.data;
                 setCustomers(prev => currentPage === 1 ? newCustomers : [...prev, ...newCustomers]);
@@ -80,7 +78,7 @@ const DashboardPage = () => {
 
     const handleDeleteCustomer = (customerId, customerName) => {
         if (window.confirm(`Are you sure you want to delete ${customerName}?`)) {
-            axios.delete(`${API_URL}/api/customers/${customerId}`)
+            axios.delete(`/api/customers/${customerId}`)
                 .then(() => { toast.success(`${customerName} was deleted.`); setPage(1); fetchCustomers(1, searchTerm, sortBy, filterPending); })
                 .catch(err => toast.error(`Failed to delete ${customerName}.`));
         }

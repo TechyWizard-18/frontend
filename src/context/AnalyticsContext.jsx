@@ -4,8 +4,6 @@
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 // 1. Create the context
 const AnalyticsContext = createContext();
 
@@ -20,7 +18,7 @@ export const AnalyticsProvider = ({ children }) => {
 
     // We use useCallback to prevent this function from being recreated on every render
     const fetchSummary = useCallback(() => {
-        axios.get(`${API_URL}/api/analytics/ppo-summary`)
+        axios.get('/api/analytics/ppo-summary')
             .then(response => setSummary(response.data))
             .catch(error => console.error('Error fetching analytics:', error));
     }, []);

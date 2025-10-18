@@ -7,8 +7,6 @@ import { useParams, Link } from 'react-router-dom';
 import AddPOForm from './AddPPOForm';
 import { useAnalytics } from '../../context/AnalyticsContext.jsx';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     container: { color: 'white', minHeight: '80vh' },
     backButton: { display: 'inline-block', marginBottom: '20px', padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', textDecoration: 'none', borderRadius: '5px', fontWeight: 'bold' },
@@ -39,7 +37,7 @@ const CustomerDetailPage = () => {
     const { fetchSummary } = useAnalytics();
 
     const fetchPOs = () => {
-        axios.get(`${API_URL}/api/customers/${id}/ppos`)
+        axios.get(`/api/customers/${id}/ppos`)
             .then(response => setPOs(response.data))
             .catch(error => console.log('Error fetching POs:', error));
     };
@@ -49,7 +47,7 @@ const CustomerDetailPage = () => {
         setError(null);
 
         // Fetch customer details
-        axios.get(`${API_URL}/api/customers/${id}`)
+        axios.get(`/api/customers/${id}`)
             .then(response => {
                 setCustomer(response.data);
                 setLoading(false);
@@ -65,7 +63,7 @@ const CustomerDetailPage = () => {
     }, [id]);
 
     const handleStatusChange = (poId, newStatus) => {
-        axios.patch(`${API_URL}/api/ppos/${poId}`, { status: newStatus })
+        axios.patch(`/api/ppos/${poId}`, { status: newStatus })
             .then(res => {
                 console.log('PO status updated:', res.data);
                 fetchPOs();

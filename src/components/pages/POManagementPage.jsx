@@ -8,8 +8,6 @@ import { toast } from 'react-toastify';
 import AnimatedPage from '../AnimatedPage';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     container: { color: 'white', minHeight: '80vh' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
@@ -62,7 +60,7 @@ const POManagementPage = () => {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
 
-        axios.get(`${API_URL}/api/ppos?${params.toString()}`)
+        axios.get(`/api/ppos?${params.toString()}`)
             .then(response => {
                 setPOs(response.data);
                 calculateStats(response.data);
@@ -85,7 +83,7 @@ const POManagementPage = () => {
     };
 
     const handleStatusChange = (poId, newStatus) => {
-        axios.patch(`${API_URL}/api/ppos/${poId}`, { status: newStatus })
+        axios.patch(`/api/ppos/${poId}`, { status: newStatus })
             .then(() => {
                 toast.success('PO status updated successfully!');
                 fetchPOs();

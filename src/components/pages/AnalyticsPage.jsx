@@ -10,8 +10,6 @@ import {
 } from 'recharts';
 import AnimatedPage from '../../components/AnimatedPage';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     title: { color: 'white', marginBottom: '20px', fontSize: '2em', fontWeight: 'bold' },
     headerContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
@@ -45,7 +43,7 @@ const AnalyticsPage = () => {
     // Fetch all analytics data on load
     useEffect(() => {
         // Customer Growth
-        axios.get(`${API_URL}/api/analytics/customer-growth`)
+        axios.get('/api/analytics/customer-growth')
             .then(res => {
                 const formattedData = res.data.map(d => ({
                     ...d,
@@ -56,7 +54,7 @@ const AnalyticsPage = () => {
             .catch(err => console.error('Error fetching customer growth:', err));
 
         // Customers Served
-        axios.get(`${API_URL}/api/analytics/customers-served`)
+        axios.get('/api/analytics/customers-served')
             .then(res => {
                 const formattedData = res.data.map(d => ({
                     ...d,
@@ -67,7 +65,7 @@ const AnalyticsPage = () => {
             .catch(err => console.error('Error fetching customers served:', err));
 
         // Revenue Trend
-        axios.get(`${API_URL}/api/analytics/revenue-trend`)
+        axios.get('/api/analytics/revenue-trend')
             .then(res => {
                 const formattedData = res.data.map(d => ({
                     ...d,
@@ -79,12 +77,12 @@ const AnalyticsPage = () => {
             .catch(err => console.error('Error fetching revenue trend:', err));
 
         // Top Customers
-        axios.get(`${API_URL}/api/analytics/top-customers?limit=8`)
+        axios.get('/api/analytics/top-customers?limit=8')
             .then(res => setTopCustomers(res.data))
             .catch(err => console.error('Error fetching top customers:', err));
 
         // Status Distribution
-        axios.get(`${API_URL}/api/analytics/ppo-status-distribution`)
+        axios.get('/api/analytics/ppo-status-distribution')
             .then(res => {
                 const formatted = res.data.map(item => ({
                     name: item._id,
@@ -96,7 +94,7 @@ const AnalyticsPage = () => {
             .catch(err => console.error('Error fetching status distribution:', err));
 
         // Completion Rate
-        axios.get(`${API_URL}/api/analytics/completion-rate`)
+        axios.get('/api/analytics/completion-rate')
             .then(res => {
                 const formattedData = res.data.map(d => ({
                     ...d,
@@ -110,7 +108,7 @@ const AnalyticsPage = () => {
 
     // Fetch monthly financials when filters change
     useEffect(() => {
-        axios.get(`${API_URL}/api/analytics/ppo-monthly-summary?year=${selectedYear}&month=${selectedMonth}`)
+        axios.get(`/api/analytics/ppo-monthly-summary?year=${selectedYear}&month=${selectedMonth}`)
             .then(res => setMonthlyFinancials(res.data))
             .catch(err => console.error('Error fetching monthly financials:', err));
     }, [selectedYear, selectedMonth]);

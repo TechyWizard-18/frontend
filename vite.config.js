@@ -44,4 +44,15 @@ export default defineConfig({
             },
         })
     ],
+
+    // 👇 ADD THIS SERVER CONFIGURATION FOR LOCAL DEVELOPMENT
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://13.60.188.141:5000',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, '')
+            }
+        }
+    }
 })

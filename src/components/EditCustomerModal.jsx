@@ -4,10 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
-    // ... (Styles for the modal popup)
     modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { backgroundColor: 'white', padding: '30px', borderRadius: '8px', width: '400px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' },
     modalTitle: { marginTop: 0 },
@@ -41,7 +38,7 @@ const EditCustomerModal = ({ customer, onClose, onCustomerUpdated }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.patch(`${API_URL}/api/customers/${customer._id}`, formData)
+        axios.patch(`/api/customers/${customer._id}`, formData)
             .then(res => {
                 onCustomerUpdated(res.data.customer); // Pass updated customer back to parent
                 onClose(); // Close the modal

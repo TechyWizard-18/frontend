@@ -5,8 +5,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     container: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' },
     formCard: { width: '450px', background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '30px', borderRadius: '15px', color: 'white' },
@@ -83,7 +81,7 @@ const AddCustomerPage = () => {
         const fullPhone = `${countryCode}${phone}`;
 
         try {
-            const res = await axios.post(`${API_URL}/api/customers`, {
+            const res = await axios.post('/api/customers', {
                 name,
                 phone: fullPhone,
                 address

@@ -7,8 +7,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AnimatedPage from '../AnimatedPage';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     container: { color: 'white', minHeight: '80vh' },
     header: { marginBottom: '30px' },
@@ -43,7 +41,7 @@ const AdminPanel = () => {
 
     const fetchUsers = async () => {
         try {
-            const { data } = await axios.get(`${API_URL}/api/admin/users`);
+            const { data } = await axios.get('/api/admin/users');
             setUsers(data);
             setLoading(false);
         } catch (error) {
@@ -67,7 +65,7 @@ const AdminPanel = () => {
         }
 
         try {
-            await axios.post(`${API_URL}/api/admin/create-user`, {
+            await axios.post('/api/admin/create-user', {
                 username: newUsername,
                 password: newPassword
             });
@@ -88,7 +86,7 @@ const AdminPanel = () => {
         }
 
         try {
-            await axios.delete(`${API_URL}/api/admin/users/${userId}`);
+            await axios.delete(`/api/admin/users/${userId}`);
             toast.success(`User '${username}' deleted successfully!`);
             fetchUsers();
         } catch (error) {
@@ -103,7 +101,7 @@ const AdminPanel = () => {
         }
 
         try {
-            await axios.put(`${API_URL}/api/admin/users/${userId}/change-password`, {
+            await axios.put(`/api/admin/users/${userId}/change-password`, {
                 newPassword: newPasswordForUser
             });
             toast.success('Password changed successfully!');

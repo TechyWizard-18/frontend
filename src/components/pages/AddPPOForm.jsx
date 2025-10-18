@@ -5,8 +5,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const styles = {
     form: {
         background: 'rgba(255, 255, 255, 0.1)',
@@ -76,7 +74,7 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
             ppoDescription: poDescription
         };
 
-        axios.post(`${API_URL}/api/ppos`, newPO)
+        axios.post('/api/ppos', newPO)
             .then(res => {
                 console.log('PO added successfully:', res.data);
                 setPoValue('');

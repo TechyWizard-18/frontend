@@ -6,16 +6,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-// Validation: Check if API_URL is set
-if (!API_URL) {
-    console.error('VITE_API_URL is not set! Please check your .env file.');
-    throw new Error('API URL is not configured. Please set VITE_API_URL in your .env file.');
-}
-
-console.log('API URL configured as:', API_URL);
-
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -30,8 +20,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
-            console.log('Attempting login to:', `${API_URL}/api/users/login`);
-            const { data } = await axios.post(`${API_URL}/api/users/login`, { username, password });
+            console.log('Attempting login to:', '/api/users/login');
+            const { data } = await axios.post('/api/users/login', { username, password });
 
             // 1. Save token to localStorage
             localStorage.setItem('token', data.token);
