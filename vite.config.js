@@ -19,7 +19,8 @@ export default defineConfig({
             '/api': {
                 target: 'http://13.60.188.141:5000',
                 changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, '')
+                // DELETE THIS LINE:
+                // rewrite: (path) => path.replace(/^\/api/, '')
             }
         }
     }
