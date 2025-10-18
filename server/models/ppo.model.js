@@ -11,8 +11,7 @@ const ppoSchema = new Schema({
         required: true,
         enum: ['Pending', 'Dispatched'],
         default: 'Pending'
-    },
-    pendingReason: { type: String, default: '' } // Reason for pending status
+    }
 }, {
     timestamps: true,
 });
