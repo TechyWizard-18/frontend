@@ -1,6 +1,5 @@
 {
   "name": "secretproject",
-  "homepage" : "https://github.com/TechyWizard-18/frontend.git",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,11 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  },
-  "dependencies": {
+    "preview": "vite preview"
+  },  "dependencies": {
     "axios": "^1.12.2",
     "framer-motion": "^12.23.24",
     "mongodb": "^6.20.0",
