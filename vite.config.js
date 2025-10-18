@@ -4,6 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa' // Import the plugin
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    // Add this line for GitHub Pages deployment
+    base: '/your-repo-name/', // 👈 **** ADD THIS LINE ****
+
     plugins: [
         react(),
         VitePWA({
@@ -19,7 +22,7 @@ export default defineConfig({
                 background_color: '#ffffff',
                 display: 'standalone',
                 scope: '/',
-                start_url: '/',
+                start_url: '/', // This start_url might need adjustment with the 'base' property.
                 icons: [
                     {
                         src: 'pwa-192x192.png', // Path to your app icon
