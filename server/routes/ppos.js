@@ -83,4 +83,19 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
+// PATCH: Update the pending reason of a PPO
+router.patch('/:id/reason', async (req, res) => {
+    try {
+        const ppo = await PPO.findById(req.params.id);
+        if (!ppo) {
+            return res.status(404).json('PPO not found');
+        }
+        ppo.pendingReason = req.body.pendingReason;
+        await ppo.save();
+        res.json('PPO reason updated!');
+    } catch (error) {
+        res.status(400).json('Error: ' + error);
+    }
+});
+
 module.exports = router;

@@ -29,6 +29,28 @@ const styles = {
     statusSelect: { padding: '8px 12px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', cursor: 'pointer', fontSize: '1em' },
     loadingContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'white', fontSize: '1.5em' },
     noPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px' },
+    modalOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+    },
+    modalContent: {
+        padding: '30px',
+        borderRadius: '12px',
+        background: 'rgba(30, 30, 30, 0.95)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        minWidth: '400px',
+        maxWidth: '600px',
+        position: 'relative'
+    },
     getStatusBadge: (status) => {
         const baseStyle = { padding: '8px 15px', borderRadius: '20px', color: 'white', fontWeight: 'bold', textAlign: 'center', display: 'inline-block' };
         if (status === 'Pending') return { ...baseStyle, backgroundColor: '#ffc107' };
@@ -46,6 +68,9 @@ const POManagementPage = () => {
     const [endDate, setEndDate] = useState('');
     const [stats, setStats] = useState({ total: 0, pending: 0, dispatched: 0});
     const { fetchSummary } = useAnalytics();
+    const [showReasonModal, setShowReasonModal] = useState(false);
+    const [selectedPO, setSelectedPO] = useState(null);
+    const [reasonText, setReasonText] = useState('');
 
     useEffect(() => {
         fetchPOs();
@@ -92,6 +117,33 @@ const POManagementPage = () => {
             .catch(err => {
                 console.error('Error updating PO status:', err);
                 toast.error('Failed to update PO status');
+            });
+    };
+
+    const openReasonModal = (po) => {
+        setSelectedPO(po);
+        setReasonText(po.pendingReason || '');
+        setShowReasonModal(true);
+    };
+
+    const closeReasonModal = () => {
+        setShowReasonModal(false);
+        setSelectedPO(null);
+        setReasonText('');
+    };
+
+    const handleSaveReason = () => {
+        if (!selectedPO) return;
+
+        axios.patch(`/api/ppos/${selectedPO._id}/reason`, { pendingReason: reasonText })
+            .then(() => {
+                toast.success('Reason updated successfully!');
+                closeReasonModal();
+                fetchPOs();
+            })
+            .catch(err => {
+                console.error('Error updating reason:', err);
+                toast.error('Failed to update reason');
             });
     };
 
@@ -211,6 +263,7 @@ const POManagementPage = () => {
                                 <th style={styles.th}>Value</th>
                                 <th style={styles.th}>Description</th>
                                 <th style={styles.th}>Status</th>
+                                <th style={styles.th}>Pending Reason</th>
                                 <th style={styles.th}>Change Status</th>
                             </tr>
                         </thead>
@@ -234,6 +287,38 @@ const POManagementPage = () => {
                                         <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
                                     </td>
                                     <td style={styles.td}>
+                                        {po.status === 'Pending' ? (
+                                            <div>
+                                                {po.pendingReason ? (
+                                                    <div style={{ marginBottom: '8px', color: '#ffc107', fontStyle: 'italic' }}>
+                                                        {po.pendingReason}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ marginBottom: '8px', color: '#888', fontStyle: 'italic' }}>
+                                                        No reason provided
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => openReasonModal(po)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '5px',
+                                                        border: 'none',
+                                                        background: '#ffc107',
+                                                        color: '#000',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '0.85em'
+                                                    }}
+                                                >
+                                                    {po.pendingReason ? 'Edit Reason' : 'Add Reason'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span style={{ color: '#888' }}>N/A</span>
+                                        )}
+                                    </td>
+                                    <td style={styles.td}>
                                         <select
                                             value={po.status}
                                             onChange={(e) => handleStatusChange(po._id, e.target.value)}
@@ -247,6 +332,27 @@ const POManagementPage = () => {
                             ))}
                         </tbody>
                     </table>
+                )}
+
+                {/* Reason Modal */}
+                {showReasonModal && (
+                    <div style={styles.modalOverlay} onClick={closeReasonModal}>
+                        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                            <span onClick={closeReasonModal} style={{ cursor: 'pointer', float: 'right', fontSize: '1.5em', color: 'white' }}>&times;</span>
+                            <h2 style={{ color: 'white', marginTop: '0' }}>Edit Pending Reason</h2>
+                            <textarea
+                                value={reasonText}
+                                onChange={(e) => setReasonText(e.target.value)}
+                                placeholder="Enter reason why this PPO is still pending..."
+                                rows="5"
+                                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', fontSize: '1em', resize: 'vertical', boxSizing: 'border-box' }}
+                            />
+                            <div style={{ marginTop: '15px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                <button onClick={closeReasonModal} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6c757d', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+                                <button onClick={handleSaveReason} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#28a745', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>Save Reason</button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </AnimatedPage>
