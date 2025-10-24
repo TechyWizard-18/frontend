@@ -2,6 +2,6 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://13.60.188.141:5000/api/:path*"    }
+      "destination": "https://backendnode-t8be.onrender.com/api/:path*"    }
   ]
 }
