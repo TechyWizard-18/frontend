@@ -75,7 +75,11 @@ router.patch('/:id', async (req, res) => {
         if (!ppo) {
             return res.status(404).json('PPO not found');
         }
-        ppo.status = req.body.status;
+        // ===== NEW FEATURE: Update status only if provided =====
+        if (req.body.status !== undefined) {
+            ppo.status = req.body.status;
+        }
+        // ===== END NEW FEATURE =====
         // ===== NEW FEATURE: Update pending remark =====
         if (req.body.pendingRemark !== undefined) {
             ppo.pendingRemark = req.body.pendingRemark;
