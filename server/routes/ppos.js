@@ -68,7 +68,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-
 // PATCH: Update the status of a PPO
 router.patch('/:id', async (req, res) => {
     try {
@@ -77,11 +76,58 @@ router.patch('/:id', async (req, res) => {
             return res.status(404).json('PPO not found');
         }
         ppo.status = req.body.status;
+        // ===== NEW FEATURE: Update pending remark =====
+        if (req.body.pendingRemark !== undefined) {
+            ppo.pendingRemark = req.body.pendingRemark;
+        }
+        // ===== END NEW FEATURE =====
         await ppo.save();
         res.json('PPO status updated!');
     } catch (error) {
         res.status(400).json('Error: ' + error);
     }
 });
+
+// ===== NEW FEATURE: Bulk import customers from Excel =====
+router.post('/bulk-import', async (req, res) => {
+    try {
+        const { customers } = req.body; // Expected: array of customer objects
+
+        if (!Array.isArray(customers) || customers.length === 0) {
+            return res.status(400).json({ message: 'Invalid data format. Expected an array of customers.' });
+        }
+
+        const results = {
+            success: [],
+            failed: []
+        };
+
+        for (const customerData of customers) {
+            try {
+                const newPPO = new PPO({
+                    customerId: customerData.customerId,
+                    ppoValue: customerData.ppoValue,
+                    ppoType: customerData.ppoType,
+                    ppoDescription: customerData.ppoDescription || '',
+                    status: customerData.status || 'Pending'
+                });
+                await newPPO.save();
+                results.success.push(customerData);
+            } catch (error) {
+                results.failed.push({ data: customerData, error: error.message });
+            }
+        }
+
+        res.json({
+            message: 'Import completed',
+            successCount: results.success.length,
+            failedCount: results.failed.length,
+            failed: results.failed
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error importing data', error: error.message });
+    }
+});
+// ===== END NEW FEATURE =====
 
 module.exports = router;

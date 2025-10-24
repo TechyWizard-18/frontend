@@ -7,6 +7,9 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EditCustomerModal from '../EditCustomerModal';
 import AnimatedPage from '../AnimatedPage';
+// ===== NEW: Import Excel modal =====
+import ExcelImportModal from '../ExcelImportModal';
+// ===== END NEW =====
 
 const styles = {
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
@@ -18,8 +21,25 @@ const styles = {
     select: { padding: '10px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.2)', color: 'white', fontSize: '1em', cursor: 'pointer' },
     filterButton: { padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#17a2b8', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
     clearButton: { padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6c757d', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
-    customerGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' },
-    customerCard: { background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: '#f0f0f0' },
+    // ===== CHANGED: Grid to List View =====
+    customerList: { display: 'flex', flexDirection: 'column', gap: '15px' },
+    customerCard: {
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        padding: '20px',
+        borderRadius: '8px',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        color: '#f0f0f0',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer'
+    },
+    customerInfo: { display: 'flex', flexDirection: 'column', flex: 1 },
+    customerMeta: { display: 'flex', gap: '30px', alignItems: 'center', flexWrap: 'wrap' },
+    // ===== END CHANGED =====
     customerName: { margin: 0, color: 'white', textDecoration: 'none', fontSize: '1.2em', fontWeight: 'bold' },
     customerPhone: { margin: '5px 0 0', color: '#ccc' },
     customerDate: { margin: '8px 0 0', color: '#aaa', fontSize: '0.85em', fontStyle: 'italic' },
@@ -29,7 +49,10 @@ const styles = {
     deleteButton: { border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: '#dc3545', color: 'white' },
     messageContainer: { color: 'white', textAlign: 'center', padding: '40px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '8px' },
     showMoreContainer: { display: 'flex', justifyContent: 'center', padding: '20px' },
-    showMoreButton: { background: '#28a745', color: 'white', padding: '12px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1em', fontWeight: 'bold' }
+    showMoreButton: { background: '#28a745', color: 'white', padding: '12px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1em', fontWeight: 'bold' },
+    // ===== NEW: Import button =====
+    importButton: { textDecoration: 'none', backgroundColor: '#28a745', color: 'white', padding: '10px 15px', borderRadius: '5px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginLeft: '10px' }
+    // ===== END NEW =====
 };
 
 const DashboardPage = () => {
@@ -40,6 +63,9 @@ const DashboardPage = () => {
     const [sortBy, setSortBy] = useState('newest');
     const [filterPending, setFilterPending] = useState('all');
     const [editingCustomer, setEditingCustomer] = useState(null);
+    // ===== NEW: Excel import modal state =====
+    const [showImportModal, setShowImportModal] = useState(false);
+    // ===== END NEW =====
 
     const formatDateTime = (dateString) => {
         const date = new Date(dateString);
@@ -95,17 +121,25 @@ const DashboardPage = () => {
         setFilterPending('all');
     };
 
+    // ===== NEW: Handle import success =====
+    const handleImportSuccess = () => {
+        setPage(1);
+        fetchCustomers(1, searchTerm, sortBy, filterPending);
+        setShowImportModal(false);
+    };
+    // ===== END NEW =====
+
     const renderContent = () => {
         if (customers.length === 0) {
             return <div style={styles.messageContainer}><p>No customers found.</p></div>;
         }
         return (
-            <div style={styles.customerGrid}>
+            <div style={styles.customerList}>
                 {customers.map(customer => (
                     <div key={customer._id} style={styles.customerCard}>
-                        <div>
-                            <div>
-                                <Link to={`/customer/${customer._id}`} style={styles.customerName}>{customer.name}</Link>
+                        <div style={styles.customerInfo}>
+                            <Link to={`/customer/${customer._id}`} style={styles.customerName}>{customer.name}</Link>
+                            <div style={styles.customerMeta}>
                                 <p style={styles.customerPhone}>{customer.phone}</p>
                                 <p style={styles.customerDate}>📅 Added: {formatDateTime(customer.createdAt)}</p>
                             </div>
@@ -126,9 +160,15 @@ const DashboardPage = () => {
     return (
         <AnimatedPage>
             {editingCustomer && <EditCustomerModal customer={editingCustomer} onClose={() => setEditingCustomer(null)} onCustomerUpdated={handleCustomerUpdated} />}
+            {/* ===== NEW: Excel Import Modal ===== */}
+            <ExcelImportModal isOpen={showImportModal} onClose={() => setShowImportModal(false)} onImportSuccess={handleImportSuccess} />
+            {/* ===== END NEW ===== */}
             <div style={styles.header}>
                 <h1 style={styles.title}>Customer Database</h1>
-                <Link to="/add-customer" style={styles.addButton}>+ Add New Customer</Link>
+                <div>
+                    <Link to="/add-customer" style={styles.addButton}>+ Add New Customer</Link>
+                    <button style={styles.importButton} onClick={() => setShowImportModal(true)}>📥 Import Customers</button>
+                </div>
             </div>
             <div style={styles.controlsContainer}>
                 <div style={styles.searchRow}>
@@ -171,4 +211,3 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
-

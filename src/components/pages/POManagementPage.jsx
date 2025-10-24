@@ -25,8 +25,16 @@ const styles = {
     table: { width: '100%', borderCollapse: 'collapse', background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '10px', overflow: 'hidden' },
     th: { backgroundColor: 'rgba(0, 123, 255, 0.8)', color: 'white', padding: '15px', textAlign: 'left', fontWeight: 'bold' },
     td: { padding: '15px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#f0f0f0' },
+    // ===== NEW: Pending 5+ days highlight =====
+    tdOverdue: { padding: '15px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#f0f0f0', backgroundColor: 'rgba(255, 0, 0, 0.2)' },
+    // ===== END NEW =====
     customerLink: { color: '#17a2b8', textDecoration: 'none', fontWeight: 'bold' },
     statusSelect: { padding: '8px 12px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', cursor: 'pointer', fontSize: '1em' },
+    // ===== NEW: Remark input =====
+    remarkInput: { width: '100%', padding: '8px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.3)', color: 'white', fontSize: '0.9em' },
+    remarkButton: { padding: '5px 10px', borderRadius: '5px', border: 'none', background: '#28a745', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85em', marginTop: '5px' },
+    remarkDisplay: { fontSize: '0.85em', color: '#ffc107', fontStyle: 'italic', marginTop: '5px' },
+    // ===== END NEW =====
     loadingContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'white', fontSize: '1.5em' },
     noPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px' },
     getStatusBadge: (status) => {
@@ -45,6 +53,10 @@ const POManagementPage = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [stats, setStats] = useState({ total: 0, pending: 0, dispatched: 0});
+    // ===== NEW: Remarks state =====
+    const [editingRemark, setEditingRemark] = useState(null);
+    const [remarkText, setRemarkText] = useState('');
+    // ===== END NEW =====
     const { fetchSummary } = useAnalytics();
 
     useEffect(() => {
@@ -95,6 +107,27 @@ const POManagementPage = () => {
             });
     };
 
+    // ===== NEW: Handle remark update =====
+    const handleRemarkUpdate = (poId) => {
+        axios.patch(`/api/ppos/${poId}`, { pendingRemark: remarkText })
+            .then(() => {
+                toast.success('Remark updated successfully!');
+                setEditingRemark(null);
+                setRemarkText('');
+                fetchPOs();
+            })
+            .catch(err => {
+                console.error('Error updating remark:', err);
+                toast.error('Failed to update remark');
+            });
+    };
+
+    const startEditingRemark = (poId, currentRemark) => {
+        setEditingRemark(poId);
+        setRemarkText(currentRemark || '');
+    };
+    // ===== END NEW =====
+
     const handleClearFilters = () => {
         setSearchTerm('');
         setStatusFilter('all');
@@ -115,6 +148,14 @@ const POManagementPage = () => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
+
+    // ===== NEW: Check if PO is overdue (pending for 5+ days) =====
+    const isPOOverdue = (po) => {
+        if (po.status !== 'Pending') return false;
+        const daysPending = (new Date() - new Date(po.createdAt)) / (1000 * 60 * 60 * 24);
+        return daysPending >= 5;
+    };
+    // ===== END NEW =====
 
     if (loading) {
         return (
@@ -212,39 +253,93 @@ const POManagementPage = () => {
                                 <th style={styles.th}>Description</th>
                                 <th style={styles.th}>Status</th>
                                 <th style={styles.th}>Change Status</th>
+                                {/* ===== NEW: Remarks column ===== */}
+                                <th style={styles.th}>Remarks (Pending Only)</th>
+                                {/* ===== END NEW ===== */}
                             </tr>
                         </thead>
                         <tbody>
-                            {pos.map(po => (
-                                <tr key={po._id}>
-                                    <td style={styles.td}>{formatDate(po.createdAt)}</td>
-                                    <td style={styles.td}>
-                                        {po.customerId ? (
-                                            <Link to={`/customer/${po.customerId._id}`} style={styles.customerLink}>
-                                                {po.customerId.name}
-                                            </Link>
-                                        ) : (
-                                            <span style={{ color: '#888' }}>Unknown Customer</span>
-                                        )}
-                                    </td>
-                                    <td style={styles.td}>{po.ppoType}</td>
-                                    <td style={styles.td}>{formatCurrency(po.ppoValue)}</td>
-                                    <td style={styles.td}>{po.ppoDescription}</td>
-                                    <td style={styles.td}>
-                                        <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
-                                    </td>
-                                    <td style={styles.td}>
-                                        <select
-                                            value={po.status}
-                                            onChange={(e) => handleStatusChange(po._id, e.target.value)}
-                                            style={styles.statusSelect}
-                                        >
-                                            <option value="Pending">Pending</option>
-                                            <option value="Dispatched">Dispatched</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            ))}
+                            {pos.map(po => {
+                                const isOverdue = isPOOverdue(po);
+                                const tdStyle = isOverdue ? styles.tdOverdue : styles.td;
+                                return (
+                                    <tr key={po._id}>
+                                        <td style={tdStyle}>{formatDate(po.createdAt)}</td>
+                                        <td style={tdStyle}>
+                                            {po.customerId ? (
+                                                <Link to={`/customer/${po.customerId._id}`} style={styles.customerLink}>
+                                                    {po.customerId.name}
+                                                </Link>
+                                            ) : (
+                                                <span style={{ color: '#888' }}>Unknown Customer</span>
+                                            )}
+                                        </td>
+                                        <td style={tdStyle}>{po.ppoType}</td>
+                                        <td style={tdStyle}>{formatCurrency(po.ppoValue)}</td>
+                                        <td style={tdStyle}>{po.ppoDescription}</td>
+                                        <td style={tdStyle}>
+                                            <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
+                                            {/* ===== NEW: Show overdue warning ===== */}
+                                            {isOverdue && <div style={{ color: '#ff6b6b', fontSize: '0.8em', marginTop: '5px' }}>⚠️ Overdue 5+ days</div>}
+                                            {/* ===== END NEW ===== */}
+                                        </td>
+                                        <td style={tdStyle}>
+                                            <select
+                                                value={po.status}
+                                                onChange={(e) => handleStatusChange(po._id, e.target.value)}
+                                                style={styles.statusSelect}
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Dispatched">Dispatched</option>
+                                            </select>
+                                        </td>
+                                        {/* ===== NEW: Remarks cell ===== */}
+                                        <td style={tdStyle}>
+                                            {po.status === 'Pending' ? (
+                                                editingRemark === po._id ? (
+                                                    <div>
+                                                        <input
+                                                            type="text"
+                                                            value={remarkText}
+                                                            onChange={(e) => setRemarkText(e.target.value)}
+                                                            placeholder="Enter remark..."
+                                                            style={styles.remarkInput}
+                                                        />
+                                                        <button onClick={() => handleRemarkUpdate(po._id)} style={styles.remarkButton}>
+                                                            💾 Save
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingRemark(null)}
+                                                            style={{...styles.remarkButton, background: '#6c757d', marginLeft: '5px'}}
+                                                        >
+                                                            ✖ Cancel
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        {po.pendingRemark ? (
+                                                            <div style={styles.remarkDisplay}>
+                                                                📝 {po.pendingRemark}
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ color: '#888', fontSize: '0.85em' }}>No remark</div>
+                                                        )}
+                                                        <button
+                                                            onClick={() => startEditingRemark(po._id, po.pendingRemark)}
+                                                            style={{...styles.remarkButton, background: '#007bff'}}
+                                                        >
+                                                            ✏️ {po.pendingRemark ? 'Edit' : 'Add'} Remark
+                                                        </button>
+                                                    </div>
+                                                )
+                                            ) : (
+                                                <div style={{ color: '#888', fontSize: '0.85em' }}>N/A (Dispatched)</div>
+                                            )}
+                                        </td>
+                                        {/* ===== END NEW ===== */}
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}

@@ -186,4 +186,80 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// ===== NEW FEATURE: Bulk import customers with POs from Excel =====
+router.post('/bulk-import', async (req, res) => {
+    try {
+        const { customers } = req.body; // Expected: array of customer objects with POs
+
+        if (!Array.isArray(customers) || customers.length === 0) {
+            return res.status(400).json({ message: 'Invalid data format. Expected an array of customers.' });
+        }
+
+        const results = {
+            success: [],
+            failed: [],
+            skipped: []
+        };
+
+        for (const customerData of customers) {
+            try {
+                // Validate required fields
+                if (!customerData.name || !customerData.phone) {
+                    results.failed.push({
+                        data: customerData,
+                        error: 'Name and phone are required fields'
+                    });
+                    continue;
+                }
+
+                // Check if customer already exists
+                let customer = await Customer.findOne({ phone: customerData.phone });
+
+                if (!customer) {
+                    // Create new customer
+                    customer = new Customer({
+                        name: customerData.name,
+                        phone: customerData.phone,
+                        address: customerData.address || ''
+                    });
+                    await customer.save();
+                }
+
+                // If PO data is provided, create PO
+                if (customerData.poValue && customerData.poType) {
+                    const newPO = new PPO({
+                        customerId: customer._id,
+                        ppoValue: customerData.poValue,
+                        ppoType: customerData.poType,
+                        ppoDescription: customerData.poDescription || '',
+                        status: customerData.status || 'Pending'
+                    });
+                    await newPO.save();
+                }
+
+                results.success.push({
+                    name: customer.name,
+                    phone: customer.phone
+                });
+            } catch (error) {
+                results.failed.push({
+                    data: customerData,
+                    error: error.message
+                });
+            }
+        }
+
+        res.json({
+            message: 'Import completed',
+            successCount: results.success.length,
+            failedCount: results.failed.length,
+            success: results.success,
+            failed: results.failed
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error importing data', error: error.message });
+    }
+});
+// ===== END NEW FEATURE =====
+
 module.exports = router;

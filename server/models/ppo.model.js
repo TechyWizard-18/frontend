@@ -11,7 +11,8 @@ const ppoSchema = new Schema({
         required: true,
         enum: ['Pending', 'Dispatched'],
         default: 'Pending'
-    }
+    },
+    pendingRemark: { type: String, default: '' } // Remarks for pending POs
 }, {
     timestamps: true,
 });
