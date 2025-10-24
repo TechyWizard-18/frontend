@@ -17,7 +17,7 @@ export default defineConfig({
     server: {
         proxy: {
             '/api': {
-                target: 'http://13.60.188.141:5000',
+                target: 'https://backendnode-t8be.onrender.com',
                 changeOrigin: true,
                 // DELETE THIS LINE:
                 // rewrite: (path) => path.replace(/^\/api/, '')
