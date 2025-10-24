@@ -55,10 +55,9 @@ app.use('/api/customers', customersRouter);
 app.use('/api/ppos', pposRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/admin', adminRouter);
-app.get('/health', (req, res) => {
+app.get('/health', cors(), (req, res) => {
     res.send('OK');
 });
-
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
