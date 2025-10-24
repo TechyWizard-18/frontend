@@ -24,7 +24,9 @@ const allowedOrigins = [
 const corsOptions = {
     origin: allowedOrigins
 };
-
+app.get('/health', cors(), (req, res) => {
+    res.send('OK');
+});
 // 3. Use the configured CORS options
 //    This MUST be one of the first middleware functions used.
 app.use(cors(corsOptions));
@@ -55,9 +57,7 @@ app.use('/api/customers', customersRouter);
 app.use('/api/ppos', pposRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/admin', adminRouter);
-app.get('/health', cors(), (req, res) => {
-    res.send('OK');
-});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
