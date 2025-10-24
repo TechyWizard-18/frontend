@@ -15,7 +15,8 @@ const allowedOrigins = [
 
     "https://frontend-5fgqb6b65-kartiks-projects-ab4da1d4.vercel.app",
     'http://localhost:5173',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://frontend-mx20.onrender.com'
 ];
 
 // 2. Configure CORS with this direct list. This is a more standard and reliable way
