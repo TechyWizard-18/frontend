@@ -9,7 +9,7 @@ import AnimatedPage from '../AnimatedPage';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
 const styles = {
-    container: { color: 'white', minHeight: '80vh' },
+    container: { color: 'white', minHeight: '80vh', padding: '0 15px', maxWidth: '98%', margin: '0 auto' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
     title: { color: 'white', margin: 0, fontSize: '2em' },
     controlsContainer: { background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '15px', borderRadius: '8px', marginBottom: '20px' },
@@ -22,7 +22,8 @@ const styles = {
     statCard: { background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', padding: '15px', borderRadius: '8px', textAlign: 'center' },
     statValue: { fontSize: '2em', fontWeight: 'bold', margin: '10px 0' },
     statLabel: { color: '#ccc', fontSize: '0.9em' },
-    table: { width: '100%', borderCollapse: 'collapse', background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '10px', overflow: 'hidden' },
+    tableContainer: { width: '100%', margin: '0 -92px', overflowX: 'visible' },
+    table: { width: '100%', borderCollapse: 'collapse', background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '10px', overflow: 'hidden', tableLayout: 'auto' },
     th: { backgroundColor: 'rgba(0, 123, 255, 0.8)', color: 'white', padding: '15px', textAlign: 'left', fontWeight: 'bold' },
     td: { padding: '15px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#f0f0f0' },
     tdOverdue: { padding: '15px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#f0f0f0', backgroundColor: 'rgba(255, 0, 0, 0.2)' },
@@ -43,13 +44,16 @@ const styles = {
     cancelButton: { flex: 1, padding: '12px', borderRadius: '5px', border: 'none', background: '#6c757d', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '1em' },
     editButton: { padding: '6px 12px', borderRadius: '5px', border: 'none', background: '#17a2b8', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9em' },
     paymentAlert: { fontSize: '0.8em', marginTop: '5px', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' },
-    paymentOverdue: { backgroundColor: 'rgba(255, 0, 0, 0.3)', color: '#ff6b6b' },
-    paymentDueSoon: { backgroundColor: 'rgba(255, 193, 7, 0.3)', color: '#ffc107' },
+    paymentOverdue: { backgroundColor: 'rgba(255, 0, 0, 0.3)', color: '#ff6b6b', border: '1px solid #ff6b6b' },
+    paymentDueSoon: { backgroundColor: 'rgba(255, 193, 7, 0.3)', color: '#ffc107', border: '1px solid #ffc107' },
+    paymentOk: { backgroundColor: 'rgba(40, 167, 69, 0.3)', color: '#4CAF50', border: '1px solid #4CAF50' },
     loadingContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', color: 'white', fontSize: '1.5em' },
     noPOsMessage: { textAlign: 'center', padding: '40px', color: '#ccc', fontSize: '1.2em', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px' },
     getStatusBadge: (status) => {
         const baseStyle = { padding: '8px 15px', borderRadius: '20px', color: 'white', fontWeight: 'bold', textAlign: 'center', display: 'inline-block' };
         if (status === 'Pending') return { ...baseStyle, backgroundColor: '#ffc107' };
+        if (status === 'Dispatched') return { ...baseStyle, backgroundColor: '#17a2b8' };
+        if (status === 'Paid & Dispatched') return { ...baseStyle, backgroundColor: '#28a745' };
         return baseStyle;
     }
 };
@@ -63,7 +67,7 @@ const POManagementPage = () => {
     const [sortBy, setSortBy] = useState('newest');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [stats, setStats] = useState({ total: 0, pending: 0, dispatched: 0});
+    const [stats, setStats] = useState({ total: 0, pending: 0, dispatched: 0, paidAndDispatched: 0});
     const [editingRemark, setEditingRemark] = useState(null);
     const [remarkText, setRemarkText] = useState('');
     const [editingPO, setEditingPO] = useState(null);
@@ -72,7 +76,7 @@ const POManagementPage = () => {
         ppoType: '',
         ppoDescription: '',
         salesmanName: '',
-        paymentTerms: 30,
+        paymentDays: '',
         priority: 'Low'
     });
     const { fetchSummary } = useAnalytics();
@@ -109,6 +113,7 @@ const POManagementPage = () => {
             total: poList.length,
             pending: poList.filter(p => p.status === 'Pending').length,
             dispatched: poList.filter(p => p.status === 'Dispatched').length,
+            paidAndDispatched: poList.filter(p => p.status === 'Paid & Dispatched').length,
         };
         setStats(stats);
     };
@@ -152,7 +157,7 @@ const POManagementPage = () => {
             ppoType: po.ppoType,
             ppoDescription: po.ppoDescription,
             salesmanName: po.salesmanName || '',
-            paymentTerms: po.paymentTerms || 30,
+            paymentDays: po.initialPaymentDays || '',
             priority: po.priority || 'Low'
         });
     };
@@ -178,24 +183,32 @@ const POManagementPage = () => {
             ppoType: '',
             ppoDescription: '',
             salesmanName: '',
-            paymentTerms: 30,
+            paymentDays: '',
             priority: 'Low'
         });
     };
 
     const getPaymentStatus = (po) => {
-        if (!po.paymentDueDate || po.status === 'Dispatched') return null;
+        // Only hide payment countdown for "Paid & Dispatched" status
+        // Show countdown for both "Pending" and "Dispatched" (payment still due)
+        if (!po.paymentDueDate || po.status === 'Paid & Dispatched') return null;
 
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset to start of day for accurate calculation
+
         const dueDate = new Date(po.paymentDueDate);
+        dueDate.setHours(0, 0, 0, 0); // Reset to start of day
+
         const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
         if (daysUntilDue < 0) {
-            return { type: 'overdue', days: Math.abs(daysUntilDue), message: `⚠️ Payment overdue by ${Math.abs(daysUntilDue)} days!` };
+            return { type: 'overdue', days: Math.abs(daysUntilDue), message: `⚠️ Overdue by ${Math.abs(daysUntilDue)} days!` };
+        } else if (daysUntilDue === 0) {
+            return { type: 'due-today', days: 0, message: `🔴 Due TODAY!` };
         } else if (daysUntilDue <= 5) {
-            return { type: 'due-soon', days: daysUntilDue, message: `⏰ Payment due in ${daysUntilDue} days` };
+            return { type: 'due-soon', days: daysUntilDue, message: `⏰ Due in ${daysUntilDue} days` };
         }
-        return { type: 'ok', days: daysUntilDue, message: `Due in ${daysUntilDue} days` };
+        return { type: 'ok', days: daysUntilDue, message: `✓ Due in ${daysUntilDue} days` };
     };
 
     const handleClearFilters = () => {
@@ -256,6 +269,10 @@ const POManagementPage = () => {
                         <div style={{...styles.statValue, color: '#17a2b8'}}>{stats.dispatched}</div>
                         <div style={styles.statLabel}>Dispatched</div>
                     </div>
+                    <div style={styles.statCard}>
+                        <div style={{...styles.statValue, color: '#28a745'}}>{stats.paidAndDispatched}</div>
+                        <div style={styles.statLabel}>Paid & Dispatched</div>
+                    </div>
                 </div>
 
                 <div style={styles.controlsContainer}>
@@ -275,6 +292,7 @@ const POManagementPage = () => {
                             <option value="all">All Status</option>
                             <option value="Pending">Pending Only</option>
                             <option value="Dispatched">Dispatched Only</option>
+                            <option value="Paid & Dispatched">Paid & Dispatched Only</option>
                         </select>
                         <select
                             style={styles.select}
@@ -317,20 +335,21 @@ const POManagementPage = () => {
                         <p>No POs found matching your filters.</p>
                     </div>
                 ) : (
-                    <table style={styles.table}>
-                        <thead>
-                            <tr>
-                                <th style={styles.th}>Date</th>
-                                <th style={styles.th}>Customer</th>
-                                <th style={styles.th}>Type</th>
-                                <th style={styles.th}>Value</th>
-                                <th style={styles.th}>Description</th>
-                                <th style={styles.th}>Salesman</th>
-                                <th style={styles.th}>Payment Terms</th>
-                                <th style={styles.th}>Priority</th>
-                                <th style={styles.th}>Status</th>
-                                <th style={styles.th}>Change Status</th>
-                                <th style={styles.th}>Remarks</th>
+                    <div style={styles.tableContainer}>
+                        <table style={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th style={styles.th}>Date</th>
+                                    <th style={styles.th}>Customer</th>
+                                    <th style={styles.th}>Type</th>
+                                    <th style={styles.th}>Value</th>
+                                    <th style={styles.th}>Description</th>
+                                    <th style={styles.th}>Salesman</th>
+                                    <th style={styles.th}>Payment Days</th>
+                                    <th style={styles.th}>Priority</th>
+                                    <th style={styles.th}>Status</th>
+                                    <th style={styles.th}>Change Status</th>
+                                    <th style={styles.th}>Remarks</th>
                                 <th style={styles.th}>Actions</th>
                             </tr>
                         </thead>
@@ -355,20 +374,27 @@ const POManagementPage = () => {
                                         <td style={tdStyle}>{po.ppoDescription}</td>
                                         <td style={tdStyle}>{po.salesmanName || 'N/A'}</td>
                                         <td style={tdStyle}>
-                                            {po.paymentTerms ? `${po.paymentTerms} Days` : 'N/A'}
-                                            {po.paymentDueDate && (() => {
-                                                const paymentStatus = getPaymentStatus(po);
-                                                if (paymentStatus) {
-                                                    const alertStyle = paymentStatus.type === 'overdue' ? styles.paymentOverdue :
-                                                                      paymentStatus.type === 'due-soon' ? styles.paymentDueSoon : {};
-                                                    return (
-                                                        <div style={{...styles.paymentAlert, ...alertStyle}}>
-                                                            {paymentStatus.message}
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
+                                            {po.status === 'Paid & Dispatched' ? (
+                                                <div style={{ color: '#28a745', fontWeight: 'bold' }}>
+                                                    ✓ Paid & Dispatched
+                                                </div>
+                                            ) : po.paymentDueDate ? (
+                                                (() => {
+                                                    const paymentStatus = getPaymentStatus(po);
+                                                    if (paymentStatus) {
+                                                        const alertStyle = paymentStatus.type === 'overdue' ? styles.paymentOverdue :
+                                                                          paymentStatus.type === 'due-today' ? styles.paymentOverdue :
+                                                                          paymentStatus.type === 'due-soon' ? styles.paymentDueSoon :
+                                                                          styles.paymentOk;
+                                                        return (
+                                                            <div style={{...styles.paymentAlert, ...alertStyle}}>
+                                                                {paymentStatus.message}
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return <div style={{ color: '#888' }}>No payment date</div>;
+                                                })()
+                                            ) : 'N/A'}
                                         </td>
                                         <td style={tdStyle}>{po.priority || 'Low'}</td>
                                         <td style={tdStyle}>
@@ -383,6 +409,7 @@ const POManagementPage = () => {
                                             >
                                                 <option value="Pending">Pending</option>
                                                 <option value="Dispatched">Dispatched</option>
+                                                <option value="Paid & Dispatched">Paid & Dispatched</option>
                                             </select>
                                         </td>
                                         <td style={tdStyle}>
@@ -440,6 +467,7 @@ const POManagementPage = () => {
                             })}
                         </tbody>
                     </table>
+                    </div>
                 )}
 
                 {editingPO && (
@@ -488,15 +516,15 @@ const POManagementPage = () => {
                             </div>
 
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>Payment Terms:</label>
-                                <select
-                                    value={editForm.paymentTerms}
-                                    onChange={(e) => setEditForm({...editForm, paymentTerms: Number(e.target.value)})}
+                                <label style={styles.label}>Payment Days:</label>
+                                <input
+                                    type="number"
+                                    value={editForm.paymentDays}
+                                    onChange={(e) => setEditForm({...editForm, paymentDays: e.target.value})}
                                     style={styles.input}
-                                >
-                                    <option value="30">30 Days</option>
-                                    <option value="60">60 Days</option>
-                                </select>
+                                    min="1"
+                                    placeholder="e.g., 21, 30, 45"
+                                />
                             </div>
 
                             <div style={styles.formGroup}>

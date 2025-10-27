@@ -64,13 +64,17 @@ router.get('/', async (req, res) => {
 // POST: Create a new PPO for a customer
 router.post('/', async (req, res) => {
     try {
-        const { customerId, ppoValue, ppoType, ppoDescription, salesmanName, paymentTerms, priority } = req.body;
+        const { customerId, ppoValue, ppoType, ppoDescription, salesmanName, paymentDays, priority } = req.body;
 
-        // ===== NEW FEATURE: Calculate payment due date =====
+        // ===== NEW FEATURE: Calculate payment due date from manual days entry =====
         let paymentDueDate = null;
-        if (paymentTerms) {
+        let initialPaymentDays = null;
+
+        if (paymentDays && paymentDays > 0) {
+            // Calculate due date from NOW (PO creation time)
             paymentDueDate = new Date();
-            paymentDueDate.setDate(paymentDueDate.getDate() + paymentTerms);
+            paymentDueDate.setDate(paymentDueDate.getDate() + parseInt(paymentDays));
+            initialPaymentDays = parseInt(paymentDays); // Store original value
         }
         // ===== END NEW FEATURE =====
 
@@ -80,8 +84,8 @@ router.post('/', async (req, res) => {
             ppoType,
             ppoDescription,
             salesmanName: salesmanName || 'N/A',
-            paymentTerms: paymentTerms || 30,
             paymentDueDate: paymentDueDate,
+            initialPaymentDays: initialPaymentDays,
             priority: priority || 'Low'
         });
         await newPPO.save();
@@ -121,13 +125,15 @@ router.patch('/:id', async (req, res) => {
         if (req.body.salesmanName !== undefined) {
             ppo.salesmanName = req.body.salesmanName;
         }
-        if (req.body.paymentTerms !== undefined) {
-            ppo.paymentTerms = req.body.paymentTerms;
-            // Recalculate payment due date based on created date
+        // ===== NEW FEATURE: Update payment days (manual entry) =====
+        if (req.body.paymentDays !== undefined && req.body.paymentDays > 0) {
+            // Recalculate payment due date based on PO creation date
             const dueDate = new Date(ppo.createdAt);
-            dueDate.setDate(dueDate.getDate() + req.body.paymentTerms);
+            dueDate.setDate(dueDate.getDate() + parseInt(req.body.paymentDays));
             ppo.paymentDueDate = dueDate;
+            ppo.initialPaymentDays = parseInt(req.body.paymentDays);
         }
+        // ===== END NEW FEATURE =====
         // ===== NEW FEATURE: Update priority =====
         if (req.body.priority !== undefined) {
             ppo.priority = req.body.priority;

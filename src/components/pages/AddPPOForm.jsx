@@ -60,9 +60,9 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
     const [poValue, setPoValue] = useState('');
     const [poType, setPoType] = useState('');
     const [poDescription, setPoDescription] = useState('');
-    // ===== NEW FEATURE: Salesman and payment terms fields =====
+    // ===== NEW FEATURE: Salesman and payment days fields =====
     const [salesmanName, setSalesmanName] = useState('');
-    const [paymentTerms, setPaymentTerms] = useState('30');
+    const [paymentDays, setPaymentDays] = useState('');
     // ===== END NEW FEATURE =====
     // ===== NEW FEATURE: Priority field =====
     const [priority, setPriority] = useState('Low');
@@ -81,7 +81,7 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
             ppoDescription: poDescription,
             // ===== NEW FEATURE: Include new fields =====
             salesmanName: salesmanName,
-            paymentTerms: Number(paymentTerms),
+            paymentDays: paymentDays ? Number(paymentDays) : null,
             priority: priority
             // ===== END NEW FEATURE =====
         };
@@ -94,7 +94,7 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
                 setPoDescription('');
                 // ===== NEW FEATURE: Reset new fields =====
                 setSalesmanName('');
-                setPaymentTerms('30');
+                setPaymentDays('');
                 setPriority('Low');
                 // ===== END NEW FEATURE =====
                 setLoading(false);
@@ -165,19 +165,18 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
             </div>
             {/* ===== END NEW FEATURE ===== */}
 
-            {/* ===== NEW FEATURE: Payment terms field ===== */}
+            {/* ===== NEW FEATURE: Payment days field (manual entry) ===== */}
             <div style={styles.formGroup}>
-                <label style={styles.label}>Payment Terms:</label>
-                <select
-                    value={paymentTerms}
-                    onChange={(e) => setPaymentTerms(e.target.value)}
-                    required
+                <label style={styles.label}>Payment Due (Days):</label>
+                <input
+                    type="number"
+                    value={paymentDays}
+                    onChange={(e) => setPaymentDays(e.target.value)}
                     style={styles.input}
+                    placeholder="e.g., 21, 30, 45 (days until payment due)"
                     disabled={loading}
-                >
-                    <option value="30">30 Days</option>
-                    <option value="60">60 Days</option>
-                </select>
+                    min="1"
+                />
             </div>
             {/* ===== END NEW FEATURE ===== */}
 

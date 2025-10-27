@@ -57,34 +57,46 @@ This is a comprehensive Sales Management System designed to track customers, man
   - PO Type (e.g., Hardware, Software, Services)
   - Detailed Description
   - **Salesman Assignment**: Track which salesman handles each PO
-  - **Payment Terms**: 30-day or 60-day payment options
-- **PO Status Tracking**: Toggle between "Pending" and "Dispatched" status
-- **Edit PO Information**: Update PO details including value, type, description, salesman, and payment terms
+  - **Manual Payment Days Entry**: Enter any number of days (e.g., 21, 30, 45) for payment due countdown
+  - **Priority Level**: Mark POs as High or Low priority for better workflow management
+- **PO Status Tracking**: Toggle between "Pending", "Dispatched", and "Paid & Dispatched" status
+  - **Pending**: Shows payment countdown (payment still due)
+  - **Dispatched**: Shows "Dispatched" status badge + payment countdown still visible (order shipped but payment still due)
+  - **Paid & Dispatched**: Shows "✓ Paid & Dispatched" with no countdown (order complete and paid)
+- **Edit PO Information**: Update PO details including value, type, description, salesman, payment days, and priority
 - **PO History**: View all POs associated with each customer
 - **Remarks System**: Add notes/reasons for pending POs
-- **Payment Due Alerts**: Automatic alerts for:
-  - **Red Alert**: Payment overdue (past due date)
-  - **Yellow Alert**: Payment due within 5 days
-  - **Gray Info**: Normal status (due date in future)
+- **Payment Countdown System**:
+  - **Manual day entry**: Enter any number of days (e.g., 20, 21, 30, 45)
+  - **Real-time countdown**: Shows "Due in X days" until payment due (visible for Pending AND Dispatched)
+  - **Red Alert**: Payment overdue or "Due TODAY!"
+  - **Yellow Alert**: "Due in 1-5 days" (approaching deadline)
+  - **Green Alert**: "Due in 6+ days" (comfortable timeframe)
+  - **No countdown for Paid & Dispatched**: Once marked as "Paid & Dispatched", countdown is replaced with "✓ Paid & Dispatched"
 - **Overdue Highlighting**: POs pending for 5+ days are highlighted in red
 
 ### 4. PO Management Dashboard
 - **Advanced Filtering**:
   - Search by customer name or PO type
-  - Filter by status (All, Pending, Dispatched)
+  - Filter by status (All, Pending, Dispatched, Paid & Dispatched)
+  - Filter by priority (All, High, Low)
   - Sort by date (newest/oldest) or value (highest first)
   - Date range filtering (start date to end date)
 - **Statistics Overview**:
   - Total POs count
   - Pending POs count
   - Dispatched POs count
+  - Paid & Dispatched POs count
 - **Comprehensive Table View** showing:
   - Date created
   - Customer name (clickable to customer detail page)
   - PO type, value, and description
   - Salesman assigned
-  - Payment terms and due date alerts
-  - Current status with inline status change
+  - Payment days with accurate color-coded countdown:
+    - **Pending/Dispatched**: Shows "Initial: X days" + "Due in Y days" countdown
+    - **Paid & Dispatched**: Shows "✓ Paid & Dispatched" (no countdown)
+  - Priority level (High/Low)
+  - Current status with inline status change (Pending/Dispatched/Paid & Dispatched)
   - Remarks for pending orders
   - Edit button for updating PO information
 
@@ -149,9 +161,11 @@ This is a comprehensive Sales Management System designed to track customers, man
 - ppoType (string)
 - ppoDescription (text)
 - salesmanName (string, default: "N/A")
-- paymentTerms (30 or 60 days)
-- paymentDueDate (calculated date)
-- status (Pending/Dispatched)
+- paymentDaysRemaining (number, countdown to payment due)
+- paymentDueDate (calculated date based on days entered)
+- initialPaymentDays (number, original days entered for reference)
+- priority (High/Low, default: "Low")
+- status (Pending/Dispatched/Paid & Dispatched)
 - pendingRemark (text)
 - timestamps (createdAt, updatedAt)
 
@@ -163,17 +177,20 @@ This is a comprehensive Sales Management System designed to track customers, man
 1. Navigate to "Add Customer" page
 2. Enter customer details (name, phone, address)
 3. Submit form → Automatically redirects to customer detail page
-4. Fill PO form with value, type, description, salesman, and payment terms
+4. Fill PO form with value, type, description, salesman, and payment days (e.g., 21, 30, 45)
 5. Submit PO → Appears in PO history instantly
-6. System automatically calculates payment due date based on terms
+6. System automatically calculates payment due date and starts countdown
 
 ### Managing PO Status
 1. Go to "PO Management" page
 2. View all POs with filtering options
-3. Change status from "Pending" to "Dispatched" using dropdown
+3. Change status using dropdown:
+   - "Pending" → Payment countdown active (order not shipped, payment not received)
+   - "Dispatched" → Order shipped but payment countdown STILL shows (payment still due)
+   - "Paid & Dispatched" → Order shipped AND paid (no countdown shown)
 4. Add remarks for pending POs to track reasons for delays
 5. Edit PO information if corrections are needed
-6. Monitor payment due date alerts for timely follow-ups
+6. Monitor payment due date alerts for timely follow-ups (countdown shows for Pending AND Dispatched orders)
 
 ### Monitoring Business Performance
 1. Navigate to "Analytics" page

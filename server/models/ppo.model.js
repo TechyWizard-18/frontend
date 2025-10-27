@@ -9,16 +9,17 @@ const ppoSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'Dispatched'],
+        enum: ['Pending', 'Dispatched', 'Paid & Dispatched'],
         default: 'Pending'
     },
     pendingRemark: { type: String, default: '' }, // Remarks for pending POs
     // ===== NEW FEATURE: Salesman field =====
     salesmanName: { type: String, default: 'N/A' },
     // ===== END NEW FEATURE =====
-    // ===== NEW FEATURE: Payment due date fields =====
-    paymentTerms: { type: Number, enum: [30, 60], default: 30 }, // 30 or 60 days
-    paymentDueDate: { type: Date }, // Calculated based on payment terms
+    // ===== NEW FEATURE: Payment due date fields (UPDATED - Manual days entry) =====
+    paymentDaysRemaining: { type: Number, min: 0 }, // Days remaining until payment due (manually entered, decrements daily)
+    paymentDueDate: { type: Date }, // Calculated based on initial days entered
+    initialPaymentDays: { type: Number, min: 1 }, // Original days entered (for reference)
     // ===== END NEW FEATURE =====
     // ===== NEW FEATURE: Priority field =====
     // Added to support High/Low priority filtering and display
