@@ -3,8 +3,6 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-    // The 'base' line is now GONE. This is correct.
-
     plugins: [
         react(),
         VitePWA({
@@ -12,15 +10,14 @@ export default defineConfig({
         })
     ],
 
-    // This 'server' section is PERFECT for local dev (npm run dev)
-    // KEEP THIS!
     server: {
         proxy: {
             '/api': {
-                target: 'https://backendnode-t8be.onrender.com',
+                // This will use your .env file: VITE_BACKEND_URL
+                // Switch between local and production by editing .env file
+                target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
                 changeOrigin: true,
-                // DELETE THIS LINE:
-                // rewrite: (path) => path.replace(/^\/api/, '')
+                secure: false,
             }
         }
     }

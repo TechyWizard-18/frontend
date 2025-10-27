@@ -4,7 +4,7 @@ const PPO = require('../models/ppo.model');
 // GET: Get all PPOs with filtering, sorting, and search
 router.get('/', async (req, res) => {
     try {
-        const { search, status, sortBy, startDate, endDate } = req.query;
+        const { search, status, sortBy, startDate, endDate, priority } = req.query;
 
         // Build query
         let query = {};
@@ -12,6 +12,11 @@ router.get('/', async (req, res) => {
         // Status filter
         if (status) {
             query.status = status;
+        }
+
+        // Priority filter
+        if (priority) {
+            query.priority = priority;
         }
 
         // Date range filter
@@ -59,8 +64,26 @@ router.get('/', async (req, res) => {
 // POST: Create a new PPO for a customer
 router.post('/', async (req, res) => {
     try {
-        const { customerId, ppoValue, ppoType, ppoDescription } = req.body;
-        const newPPO = new PPO({ customerId, ppoValue, ppoType, ppoDescription });
+        const { customerId, ppoValue, ppoType, ppoDescription, salesmanName, paymentTerms, priority } = req.body;
+
+        // ===== NEW FEATURE: Calculate payment due date =====
+        let paymentDueDate = null;
+        if (paymentTerms) {
+            paymentDueDate = new Date();
+            paymentDueDate.setDate(paymentDueDate.getDate() + paymentTerms);
+        }
+        // ===== END NEW FEATURE =====
+
+        const newPPO = new PPO({
+            customerId,
+            ppoValue,
+            ppoType,
+            ppoDescription,
+            salesmanName: salesmanName || 'N/A',
+            paymentTerms: paymentTerms || 30,
+            paymentDueDate: paymentDueDate,
+            priority: priority || 'Low'
+        });
         await newPPO.save();
         res.status(201).json('PPO added!');
     } catch (error) {
@@ -85,8 +108,33 @@ router.patch('/:id', async (req, res) => {
             ppo.pendingRemark = req.body.pendingRemark;
         }
         // ===== END NEW FEATURE =====
+        // ===== NEW FEATURE: Update PO details for editing =====
+        if (req.body.ppoValue !== undefined) {
+            ppo.ppoValue = req.body.ppoValue;
+        }
+        if (req.body.ppoType !== undefined) {
+            ppo.ppoType = req.body.ppoType;
+        }
+        if (req.body.ppoDescription !== undefined) {
+            ppo.ppoDescription = req.body.ppoDescription;
+        }
+        if (req.body.salesmanName !== undefined) {
+            ppo.salesmanName = req.body.salesmanName;
+        }
+        if (req.body.paymentTerms !== undefined) {
+            ppo.paymentTerms = req.body.paymentTerms;
+            // Recalculate payment due date based on created date
+            const dueDate = new Date(ppo.createdAt);
+            dueDate.setDate(dueDate.getDate() + req.body.paymentTerms);
+            ppo.paymentDueDate = dueDate;
+        }
+        // ===== NEW FEATURE: Update priority =====
+        if (req.body.priority !== undefined) {
+            ppo.priority = req.body.priority;
+        }
+        // ===== END NEW FEATURE =====
         await ppo.save();
-        res.json('PPO status updated!');
+        res.json('PPO updated!');
     } catch (error) {
         res.status(400).json('Error: ' + error);
     }
@@ -113,7 +161,8 @@ router.post('/bulk-import', async (req, res) => {
                     ppoValue: customerData.ppoValue,
                     ppoType: customerData.ppoType,
                     ppoDescription: customerData.ppoDescription || '',
-                    status: customerData.status || 'Pending'
+                    status: customerData.status || 'Pending',
+                    priority: customerData.priority || 'Low'
                 });
                 await newPPO.save();
                 results.success.push(customerData);

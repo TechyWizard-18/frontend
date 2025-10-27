@@ -60,6 +60,13 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
     const [poValue, setPoValue] = useState('');
     const [poType, setPoType] = useState('');
     const [poDescription, setPoDescription] = useState('');
+    // ===== NEW FEATURE: Salesman and payment terms fields =====
+    const [salesmanName, setSalesmanName] = useState('');
+    const [paymentTerms, setPaymentTerms] = useState('30');
+    // ===== END NEW FEATURE =====
+    // ===== NEW FEATURE: Priority field =====
+    const [priority, setPriority] = useState('Low');
+    // ===== END NEW FEATURE =====
     const [loading, setLoading] = useState(false);
     const { fetchSummary } = useAnalytics();
 
@@ -71,7 +78,12 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
             customerId,
             ppoValue: Number(poValue),
             ppoType: poType,
-            ppoDescription: poDescription
+            ppoDescription: poDescription,
+            // ===== NEW FEATURE: Include new fields =====
+            salesmanName: salesmanName,
+            paymentTerms: Number(paymentTerms),
+            priority: priority
+            // ===== END NEW FEATURE =====
         };
 
         axios.post('/api/ppos', newPO)
@@ -80,6 +92,11 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
                 setPoValue('');
                 setPoType('');
                 setPoDescription('');
+                // ===== NEW FEATURE: Reset new fields =====
+                setSalesmanName('');
+                setPaymentTerms('30');
+                setPriority('Low');
+                // ===== END NEW FEATURE =====
                 setLoading(false);
                 onPOAdded();
                 fetchSummary();
@@ -133,6 +150,52 @@ const AddPOForm = ({ customerId, onPOAdded }) => {
                     disabled={loading}
                 />
             </div>
+
+            {/* ===== NEW FEATURE: Salesman field ===== */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Salesman Name:</label>
+                <input
+                    type="text"
+                    value={salesmanName}
+                    onChange={(e) => setSalesmanName(e.target.value)}
+                    style={styles.input}
+                    placeholder="e.g., John Doe (optional)"
+                    disabled={loading}
+                />
+            </div>
+            {/* ===== END NEW FEATURE ===== */}
+
+            {/* ===== NEW FEATURE: Payment terms field ===== */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Payment Terms:</label>
+                <select
+                    value={paymentTerms}
+                    onChange={(e) => setPaymentTerms(e.target.value)}
+                    required
+                    style={styles.input}
+                    disabled={loading}
+                >
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                </select>
+            </div>
+            {/* ===== END NEW FEATURE ===== */}
+
+            {/* ===== NEW FEATURE: Priority field ===== */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Priority:</label>
+                <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    required
+                    style={styles.input}
+                    disabled={loading}
+                >
+                    <option value="Low">Low</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            {/* ===== END NEW FEATURE ===== */}
 
             <button
                 type="submit"

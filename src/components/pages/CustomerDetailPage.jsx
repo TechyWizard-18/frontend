@@ -124,6 +124,10 @@ const CustomerDetailPage = () => {
                             <th style={styles.th}>Type</th>
                             <th style={styles.th}>Value</th>
                             <th style={styles.th}>Description</th>
+                            {/* ===== NEW FEATURE: Add salesman and payment columns ===== */}
+                            <th style={styles.th}>Salesman</th>
+                            <th style={styles.th}>Payment Terms</th>
+                            {/* ===== END NEW FEATURE ===== */}
                             <th style={styles.th}>Status</th>
                             <th style={styles.th}>Change Status</th>
                         </tr>
@@ -134,6 +138,26 @@ const CustomerDetailPage = () => {
                                 <td style={styles.td}>{po.ppoType}</td>
                                 <td style={styles.td}>{formatCurrency(po.ppoValue)}</td>
                                 <td style={styles.td}>{po.ppoDescription}</td>
+                                {/* ===== NEW FEATURE: Display salesman and payment info ===== */}
+                                <td style={styles.td}>{po.salesmanName || 'N/A'}</td>
+                                <td style={styles.td}>
+                                    {po.paymentTerms ? `${po.paymentTerms} Days` : 'N/A'}
+                                    {po.paymentDueDate && (() => {
+                                        const today = new Date();
+                                        const dueDate = new Date(po.paymentDueDate);
+                                        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+                                        if (po.status === 'Dispatched') return null;
+
+                                        if (daysUntilDue < 0) {
+                                            return <div style={{ color: '#ff6b6b', fontSize: '0.8em', marginTop: '5px' }}>⚠️ Overdue by {Math.abs(daysUntilDue)} days!</div>;
+                                        } else if (daysUntilDue <= 5) {
+                                            return <div style={{ color: '#ffc107', fontSize: '0.8em', marginTop: '5px' }}>⏰ Due in {daysUntilDue} days</div>;
+                                        }
+                                        return <div style={{ color: '#ccc', fontSize: '0.8em', marginTop: '5px' }}>Due in {daysUntilDue} days</div>;
+                                    })()}
+                                </td>
+                                {/* ===== END NEW FEATURE ===== */}
                                 <td style={styles.td}>
                                     <span style={styles.getStatusBadge(po.status)}>{po.status}</span>
                                 </td>

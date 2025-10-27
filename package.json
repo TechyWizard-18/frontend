@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "VITE_BACKEND_URL=http://localhost:5000 vite",
+    "dev:production": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
