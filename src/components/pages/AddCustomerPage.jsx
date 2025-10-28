@@ -160,8 +160,9 @@ const AddCustomerPage = () => {
             return true;
         }
 
-        if (digitsOnly.length !== 10) {
-            setPhoneError('Phone number must be exactly 10 digits');
+        // Allow up to 10 digits maximum (can be less than 10, but not more)
+        if (digitsOnly.length > 10) {
+            setPhoneError('Phone number cannot exceed 10 digits');
             return false;
         }
 
@@ -174,7 +175,7 @@ const AddCustomerPage = () => {
         // Allow only digits
         const digitsOnly = value.replace(/\D/g, '');
 
-        // Limit to 10 digits
+        // Allow maximum 10 digits
         if (digitsOnly.length <= 10) {
             setPhone(digitsOnly);
             validatePhone(digitsOnly);
@@ -185,14 +186,19 @@ const AddCustomerPage = () => {
         e.preventDefault();
         setError(null);
 
-        // Validate phone before submission
+        // Validate phone before submission (allow up to 10 digits)
         if (!validatePhone(phone)) {
-            setError('Please enter a valid 10-digit phone number');
+            setError('Please enter a valid phone number (max 10 digits)');
             return;
         }
 
-        if (phone.length !== 10) {
-            setError('Phone number must be exactly 10 digits');
+        if (phone.length === 0) {
+            setError('Phone number is required');
+            return;
+        }
+
+        if (phone.length > 10) {
+            setError('Phone number cannot exceed 10 digits');
             return;
         }
 
@@ -320,7 +326,7 @@ const AddCustomerPage = () => {
                                             : '2px solid rgba(255, 255, 255, 0.2)',
                                     ...(focusedField === 'phone' && !phoneError ? styles.inputFocus : {})
                                 }}
-                                placeholder="Enter 10 digits"
+                                placeholder="Enter up to 10 digits"
                                 disabled={loading}
                             />
                         </div>
@@ -329,7 +335,7 @@ const AddCustomerPage = () => {
                                 <span>❌</span>
                                 <span>{phoneError}</span>
                             </div>
-                        ) : phone.length === 10 ? (
+                        ) : (phone.length > 0 && phone.length <= 10) ? (
                             <div style={{...styles.helpText, color: '#4CAF50'}}>
                                 <span>✓</span>
                                 <span>Valid phone number</span>
@@ -337,7 +343,7 @@ const AddCustomerPage = () => {
                         ) : (
                             <div style={styles.helpText}>
                                 <span>ℹ️</span>
-                                <span>Enter exactly 10 digits (without country code)</span>
+                                <span>Enter up to 10 digits (without country code)</span>
                             </div>
                         )}
                     </div>
