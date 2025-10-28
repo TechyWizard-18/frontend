@@ -326,7 +326,7 @@ const AddCustomerPage = () => {
                                             : '2px solid rgba(255, 255, 255, 0.2)',
                                     ...(focusedField === 'phone' && !phoneError ? styles.inputFocus : {})
                                 }}
-                                placeholder="Enter up to 10 digits"
+                                placeholder="Enter up to {10 digits}"
                                 disabled={loading}
                             />
                         </div>
